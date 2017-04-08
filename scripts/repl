@@ -1,0 +1,28 @@
+#!/usr/bin/env expect -f
+
+spawn lein repl
+expect "user=>"
+
+# spawn node
+# expect ">"
+
+send "(use 'figwheel-sidecar.repl-api)\r"
+send "(def figwheel-config\n"
+send "  \{:figwheel-options \{:css-dirs \[\"resources/public/css\"\]\n"
+send "                        :server-port 8080\}\n"
+send "   :build-ids \[\"dev\"\]\n"
+send "   :all-builds\n"
+send "     \[\{:id \"dev\"\n"
+send "       :figwheel \{:on-jsload \"sheater.core/mount-root\"\}\n"
+send "       :source-paths \[\"src/cljs\"\]\n"
+send "       :compiler \{:main \"sheater.core\"\n"
+send "                  :asset-path \"js/compiled/out\"\n"
+send "                  :output-to \"resources/public/js/compiled/app.js\"\n"
+send "                  :output-dir \"resources/public/js/compiled/out\" \}\}]\})\n"
+send "(start-figwheel! figwheel-config)\n"
+send "(cljs-repl)\n"
+
+# hand control back to the user
+interact
+
+exit

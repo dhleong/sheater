@@ -1,0 +1,10 @@
+/*.log
+/target
+/*-init.clj
+/resources/public/js/compiled
+out
+/.lein-*
+/.nrepl-*
+.cljs_rhino_repl/
+*.css
+*.swp
