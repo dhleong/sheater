@@ -32,8 +32,11 @@
                           (fn on-complete [sheet]
                             (println "Got sheet!" sheet)
                             (dispatch [:add-sheet sheet])
+                            (js/window.location.replace
+                              (str "#/sheet/"
+                                   (name (:id sheet))))
                             (dispatch [:set-active-panel
-                                       :viewer (:id sheet)]))))))]
+                                       :viewer (name (:id sheet))]))))))]
     (fn []
       [rc/v-box
        :height "100%"

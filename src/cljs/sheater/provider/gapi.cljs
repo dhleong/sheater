@@ -2,6 +2,7 @@
       :doc "Google API persistence provider"}
   sheater.provider.gapi
   (:require [clojure.string :as str]
+            [cljs.reader :as edn]
             [re-frame.core :refer [dispatch]]
             [sheater.provider.proto :refer [IProvider]]))
 
@@ -140,7 +141,7 @@
                   (js/JSON.stringify (clj->js metadata))
                   delimiter
                   "Content-Type: " (:mimeType metadata) "\r\n\r\n"
-                  (:body content)
+                  content
                   close-delim)
         request (assoc base
                        :params {:uploadType "multipart"}
@@ -159,7 +160,7 @@
     (upload-data
       :create
       {:name (:name info)
-       :mimeType "application/edn"
+       :mimeType "application/json"
        :parents ["appDataFolder"]}
       (str
         {:name (:name info)
@@ -184,7 +185,10 @@
           #js {:fileId (:gapi-id info)
                :alt "media"})
         (.then (fn [resp]
-                 (js/console.log resp))
+                 (js/console.log resp)
+                 (when-let [body (.-body resp)]
+                   (when-let [data (edn/read-string body)]
+                     (on-complete data))))
                (fn [e]
                  (println "ERROR listing files" e)))))
   ;
