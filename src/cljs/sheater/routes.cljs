@@ -24,5 +24,21 @@
   (defroute "/about" []
     (re-frame/dispatch [:set-active-panel :about-panel]))
 
+  (defroute "/provider/:id" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :provider-panel (keyword id)]))
+
+  (defroute "/sheets" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :sheets]))
+
+  (defroute "/sheet/create" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :sheet/create]))
+
+  (defroute "/sheets/:id" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :sheet (keyword id)]))
+
   ;; --------------------
   (hook-browser-navigation!))

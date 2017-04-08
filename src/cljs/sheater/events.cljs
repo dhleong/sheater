@@ -15,7 +15,9 @@
 
 (reg-event-db
  :set-active-panel
- (fn [db [_ active-panel]]
+ [trim-v]
+ (fn [db active-panel]
+   (println "Navigate: " active-panel)
    (assoc db :active-panel active-panel)))
 
 (reg-event-db
@@ -23,3 +25,13 @@
   [trim-v]
   (fn [db [provider-id k v]]
     (assoc-in db [:providers provider-id k] v)))
+
+;;
+;; Sheet file management
+;;
+
+(reg-event-db
+  :add-files
+  [trim-v]
+  (fn [db [files]]
+    (update db :sheets concat files)))
