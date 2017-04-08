@@ -6,7 +6,8 @@
                                    ->interceptor get-coeffect get-effect 
                                    assoc-coeffect assoc-effect
                                    dispatch]]
-            [sheater.db :as db]))
+            [sheater.db :as db]
+            [sheater.subs :refer [sheet-by-id]]))
 
 (reg-event-db
  :initialize-db
@@ -31,7 +32,38 @@
 ;;
 
 (reg-event-db
-  :add-files
+  :add-files ;; TODO rename to -sheets
   [trim-v]
   (fn [db [files]]
     (update db :sheets concat files)))
+
+(declare remove-by-id)
+(reg-event-db
+  :add-sheet
+  [trim-v]
+  (fn [db [sheet]]
+    (update db
+            :sheets
+            (fn [sheets-list]
+              (conj
+                (remove-by-id sheets-list (:id sheet))
+                sheet)))))
+
+(defn remove-by-id
+  [sheets-list id]
+  (remove
+    (comp (partial = id) :id)
+    sheets-list))
+(reg-event-db
+  :delete-sheet!
+  [trim-v]
+  (fn [db [sheet-id]]
+    (update db :sheets remove-by-id sheet-id)))
+
+(reg-event-fx
+  :refresh!
+  [trim-v]
+  (fn [{:keys [db]} [sheet-id]]
+    (let [sheet (sheet-by-id db sheet-id)]
+      (when sheet
+        {:refresh! sheet}))))

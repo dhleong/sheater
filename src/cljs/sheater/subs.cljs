@@ -14,3 +14,15 @@
   :provider
   (fn [db [_ provider-id]]
     (-> db :providers provider-id)))
+
+(defn sheet-by-id
+  [db id]
+  (->> db
+       :sheets
+       (filter (comp (partial = id) :id))
+       first))
+
+(reg-sub
+  :sheet
+  (fn [db [_ id]]
+    (sheet-by-id db id)))

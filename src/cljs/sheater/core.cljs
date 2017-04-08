@@ -2,6 +2,7 @@
     (:require [reagent.core :as reagent]
               [re-frame.core :as re-frame]
               [sheater.events]
+              [sheater.fx]
               [sheater.subs]
               [sheater.routes :as routes]
               [sheater.views :as views]

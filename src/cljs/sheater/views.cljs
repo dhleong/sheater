@@ -1,15 +1,10 @@
 (ns sheater.views
     (:require [re-frame.core :refer [subscribe dispatch]]
               [re-com.core :as rc]
-              [sheater.provider.gapi.view :as gapi-view]
+              [sheater.provider :refer [providers]]
               [sheater.views.create :as create]
-              [sheater.views.sheets :as sheets]))
-
-(def providers
-  {:gapi
-   {:name "Google Drive"
-    :id :gapi
-    :panel gapi-view/main-panel}})
+              [sheater.views.sheets :as sheets]
+              [sheater.views.viewer :as viewer]))
 
 ;; home
 
@@ -61,7 +56,8 @@
     :provider-panel [(-> providers args :panel)]
     :sheets [sheets/panel]
     :sheet/create [create/panel]
-    [:div]))
+    :viewer [viewer/panel args]
+    [:div "Oops!"]))
 
 (defn show-panel [panel-name]
   [panels panel-name])

@@ -38,7 +38,7 @@
 
   (defroute "/sheets/:id" [id]
     (re-frame/dispatch [:set-active-panel
-                        :sheet (keyword id)]))
+                        :viewer (keyword id)]))
 
   ;; --------------------
   (hook-browser-navigation!))

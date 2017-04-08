@@ -1,7 +1,9 @@
 (ns ^{:author "Daniel Leong"
       :doc "Google API persistence provider"}
   sheater.provider.gapi
-  (:require [re-frame.core :refer [dispatch]]))
+  (:require [clojure.string :as str]
+            [re-frame.core :refer [dispatch]]
+            [sheater.provider.proto :refer [IProvider]]))
 
 ;;
 ;; Constants
@@ -15,7 +17,26 @@
 
 ;; Authorization scopes required by the API; multiple scopes can be
 ;; included, separated by spaces.
-(def scopes "https://www.googleapis.com/auth/drive.appfolder")
+(def scopes (str/join
+              " "
+              ["https://www.googleapis.com/auth/drive.appfolder"
+               "https://www.googleapis.com/auth/drive.appdata"]))
+
+;;
+;; Internal util
+;;
+
+(defn ->id
+  [gapi-id]
+  (keyword
+    (str "gapi-" gapi-id)))
+
+(defn ->sheet
+  [gapi-id sheet-name]
+  {:provider :gapi
+   :id (->id gapi-id)
+   :name sheet-name
+   :gapi-id gapi-id})
 
 ;;
 ;; State management and API interactions
@@ -50,11 +71,8 @@
                    :files
                    (map
                      (fn [raw-file]
-                       {:provider :gapi
-                        :id (keyword
-                              (str "gapi/" (:id raw-file)))
-                        :name (:name raw-file)
-                        :gapi-id (:id raw-file)})))]
+                       (->sheet (:id raw-file)
+                                (:name raw-file)))))]
     (println "Found: " files)
     (dispatch [:add-files files])))
 
@@ -100,3 +118,81 @@
   []
   (-> (auth-instance)
       (.signOut)))
+
+(defn upload-data
+  "The GAPI client doesn't provide proper support for
+  file uploads out-of-the-box, so let's roll our own"
+  [upload-type metadata content on-complete]
+  {:pre [(contains? #{:create :update} upload-type)
+         (string? (:mimeType metadata))
+         (not (nil? content))]}
+  (let [base (case upload-type
+               :create {:path "/upload/drive/v3/files"
+                        :method "POST"}
+               :update {:path (str "/upload/drive/v3/files/"
+                                   (:id metadata))
+                        :method "PATCH"})
+        boundary "-------314159265358979323846"
+        delimiter (str "\r\n--" boundary "\r\n")
+        close-delim (str "\r\n--" boundary "--")
+        body (str delimiter
+                  "Content-Type: application/json\r\n\r\n"
+                  (js/JSON.stringify (clj->js metadata))
+                  delimiter
+                  "Content-Type: " (:mimeType metadata) "\r\n\r\n"
+                  (:body content)
+                  close-delim)
+        request (assoc base
+                       :params {:uploadType "multipart"}
+                       :headers
+                       {:Content-Type
+                        (str "multipart/related; boundary=\"" boundary "\"")}
+                       :body body)]
+    (.execute
+      (js/gapi.client.request
+        (clj->js request))
+      on-complete)))
+
+(deftype GapiProvider []
+  IProvider
+  (create-sheet [this info on-complete]
+    (upload-data
+      :create
+      {:name (:name info)
+       :mimeType "application/edn"
+       :parents ["appDataFolder"]}
+      (str
+        {:name (:name info)
+         ; TODO:
+         :pages
+         [{:name "Main"
+           :rows []}
+          {:name "Notes"
+           :type :notes}]})
+      (fn [response]
+        (println "CREATED:" response)
+        (let [id (-> response
+                     (js->clj :keywordize-keys true)
+                     :id)]
+          (on-complete
+            (->sheet id
+                     (:name info)))))))
+  ;
+  (refresh-sheet [this info on-complete]
+    (println "Refresh " (:gapi-id info))
+    (-> (js/gapi.client.drive.files.get
+          #js {:fileId (:gapi-id info)
+               :alt "media"})
+        (.then (fn [resp]
+                 (js/console.log resp))
+               (fn [e]
+                 (println "ERROR listing files" e)))))
+  ;
+  (delete-sheet [this info]
+    (println "Delete " (:gapi-id info))
+    (-> js/gapi.client.drive.files
+        (.delete #js {:fileId (:gapi-id info)})
+        (.then (fn [resp]
+                 (println "Deleted!" (:gapi-id info)))
+               (fn [e]
+                 (js/console.warn "Failed to delete " (:gapi-id info)))))))
