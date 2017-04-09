@@ -154,10 +154,37 @@
         (clj->js request))
       on-complete)))
 
+(defn upload-data-with-retry
+  [upload-type metadata content on-complete]
+  (upload-data
+    upload-type metadata content
+    (fn [resp]
+      (let [error (.-error resp)]
+        (println "upload-data ERROR:" error)
+        (if (and error
+                 (= 401 (.-code error)))
+          ; refresh creds and retry
+          (js/gapi.auth.authorize
+            #js {:client_id client-id
+                 :scope scopes
+                 :immediate true}
+            (fn [refresh-resp]
+              (if (.-error refresh-resp)
+                (do
+                  (println "Auth refresh failed:" refresh-resp)
+                  (on-complete resp))
+                (do
+                  (println "Auth refreshed:" refresh-resp)
+                  (upload-data
+                    upload-type metadata content
+                    on-complete)))))
+          ; no problem; pass it along
+          (on-complete resp))))))
+
 (deftype GapiProvider []
   IProvider
   (create-sheet [this info on-complete]
-    (upload-data
+    (upload-data-with-retry
       :create
       {:name (:name info)
        :mimeType "application/json"
@@ -204,7 +231,7 @@
   (save-sheet [this info]
     (println "Save " (:gapi-id info))
     (println (str (:data info)))
-    (upload-data
+    (upload-data-with-retry
       :update
       {:fileId (:gapi-id info)
        :mimeType "application/json"}
