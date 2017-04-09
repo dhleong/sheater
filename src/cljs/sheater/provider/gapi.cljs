@@ -75,7 +75,7 @@
                        (->sheet (:id raw-file)
                                 (:name raw-file)))))]
     (println "Found: " files)
-    (dispatch [:add-files files])))
+    (dispatch [:add-sheets files])))
 
 (defn- on-client-init
   []
@@ -131,7 +131,7 @@
                :create {:path "/upload/drive/v3/files"
                         :method "POST"}
                :update {:path (str "/upload/drive/v3/files/"
-                                   (:id metadata))
+                                   (:fileId metadata))
                         :method "PATCH"})
         boundary "-------314159265358979323846"
         delimiter (str "\r\n--" boundary "\r\n")
@@ -167,7 +167,7 @@
          ; TODO:
          :pages
          [{:name "Main"
-           :rows []}
+           :spec []}
           {:name "Notes"
            :type :notes}]})
       (fn [response]
@@ -178,6 +178,15 @@
           (on-complete
             (->sheet id
                      (:name info)))))))
+  ;
+  (delete-sheet [this info]
+    (println "Delete " (:gapi-id info))
+    (-> js/gapi.client.drive.files
+        (.delete #js {:fileId (:gapi-id info)})
+        (.then (fn [resp]
+                 (println "Deleted!" (:gapi-id info)))
+               (fn [e]
+                 (js/console.warn "Failed to delete " (:gapi-id info))))))
   ;
   (refresh-sheet [this info on-complete]
     (println "Refresh " (:gapi-id info))
@@ -192,11 +201,13 @@
                (fn [e]
                  (println "ERROR listing files" e)))))
   ;
-  (delete-sheet [this info]
-    (println "Delete " (:gapi-id info))
-    (-> js/gapi.client.drive.files
-        (.delete #js {:fileId (:gapi-id info)})
-        (.then (fn [resp]
-                 (println "Deleted!" (:gapi-id info)))
-               (fn [e]
-                 (js/console.warn "Failed to delete " (:gapi-id info)))))))
+  (save-sheet [this info]
+    (println "Save " (:gapi-id info))
+    (println (str (:data info)))
+    (upload-data
+      :update
+      {:fileId (:gapi-id info)
+       :mimeType "application/json"}
+      (str (:data info))
+      (fn [response]
+        (println "SAVED!" response)))))

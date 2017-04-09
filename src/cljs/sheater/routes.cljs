@@ -40,5 +40,9 @@
     (re-frame/dispatch [:set-active-panel
                         :viewer (keyword id)]))
 
+  (defroute "/sheets/:id/edit" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :editor (keyword id)]))
+
   ;; --------------------
   (hook-browser-navigation!))

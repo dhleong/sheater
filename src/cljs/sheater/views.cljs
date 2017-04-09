@@ -3,6 +3,7 @@
               [re-com.core :as rc]
               [sheater.provider :refer [providers]]
               [sheater.views.create :as create]
+              [sheater.views.editor :as editor]
               [sheater.views.sheets :as sheets]
               [sheater.views.viewer :as viewer]))
 
@@ -57,6 +58,7 @@
     :sheets [sheets/panel]
     :sheet/create [create/panel]
     :viewer [viewer/panel args]
+    :editor [editor/panel args]
     [:div "Oops!"]))
 
 (defn show-panel [panel-name]

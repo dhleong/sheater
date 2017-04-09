@@ -3,7 +3,9 @@
   sheater.views.viewer
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [re-com.core :as rc]))
+            [re-com.core :as rc]
+            [sheater.views.pages.custom-page :as custom-page]
+            [sheater.views.pages.notes-page :as notes-page]))
 
 (defn four-oh-four []
   [rc/v-box
@@ -17,6 +19,16 @@
      [rc/hyperlink-href
       :label "Go back to the list"
       :href "#/sheets"]]]])
+
+(defn render-page
+  [page-info state]
+  (if-let [page-type (:type page-info)]
+    (case page-type
+      :notes [notes-page/render state]
+      [rc/alert-box
+       :alert-type :danger
+       :body (str "Unknown page type: " page-type)])
+    [custom-page/render page-info state]))
 
 (defn render-sheet
   [page info]
@@ -40,6 +52,9 @@
          [[rc/title
            :label (:name info)
            :level :level3]
+          [rc/hyperlink-href
+           :label "Edit"
+           :href (str "#/sheets/" (name (:id info)) "/edit")]
           ;
           [rc/horizontal-tabs
            :tabs (->> data :pages
@@ -49,8 +64,13 @@
            :model page
            :on-change (fn [id]
                         (reset! page id))]]]
-       [:div "TODO:" info]
-       ])]))
+        [render-page
+         (->> data
+              :pages
+              (filter (comp (partial = @page) :name))
+              first)
+         (:state info)]
+        [:div "TODO:" info]])]))
 
 (defn panel
   [id]

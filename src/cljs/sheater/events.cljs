@@ -6,8 +6,7 @@
                                    ->interceptor get-coeffect get-effect 
                                    assoc-coeffect assoc-effect
                                    dispatch]]
-            [sheater.db :as db]
-            [sheater.subs :refer [sheet-by-id]]))
+            [sheater.db :as db]))
 
 (reg-event-db
  :initialize-db
@@ -32,38 +31,55 @@
 ;;
 
 (reg-event-db
-  :add-files ;; TODO rename to -sheets
-  [trim-v]
-  (fn [db [files]]
-    (update db :sheets concat files)))
+  :add-sheets
+  [(path :sheets) trim-v]
+  (fn [old-sheets [added-sheets]]
+    (->> added-sheets
+         (map (fn [sheet]
+                [(:id sheet) sheet]))
+         (into {})
+         (merge old-sheets))))
 
-(declare remove-by-id)
 (reg-event-db
   :add-sheet
-  [trim-v]
-  (fn [db [sheet]]
-    (update db
-            :sheets
-            (fn [sheets-list]
-              (conj
-                (remove-by-id sheets-list (:id sheet))
-                sheet)))))
+  [(path :sheets) trim-v]
+  (fn [sheets [sheet]]
+    (assoc sheets (:id sheet) sheet)))
 
-(defn remove-by-id
-  [sheets-list id]
-  (remove
-    (comp (partial = id) :id)
-    sheets-list))
+(reg-event-db
+  :edit-sheet-page
+  [(path :sheets) trim-v]
+  (fn [sheets [sheet-id page-id new-page]]
+    (update-in sheets
+               [sheet-id :data :pages]
+               (fn [pages-list]
+                 ; TODO more efficient please?
+                 (vec
+                   (map
+                     (fn [page]
+                       (if (= page-id (:name page))
+                         new-page
+                         page))
+                     pages-list))))))
+
 (reg-event-db
   :delete-sheet!
-  [trim-v]
-  (fn [db [sheet-id]]
-    (update db :sheets remove-by-id sheet-id)))
+  [(path :sheets) trim-v]
+  (fn [sheets [sheet-id]]
+    (dissoc sheets sheet-id)))
 
 (reg-event-fx
   :refresh!
-  [trim-v]
+  [(path :sheets) trim-v]
   (fn [{:keys [db]} [sheet-id]]
-    (let [sheet (sheet-by-id db sheet-id)]
-      (when sheet
+    (let [sheets db]  ; path'd
+      (when-let [sheet (get sheets sheet-id)]
         {:refresh! sheet}))))
+
+(reg-event-fx
+  :save-sheet!
+  [(path :sheets) trim-v]
+  (fn [{:keys [db]} [sheet-id]]
+    (let [sheets db]  ; path'd
+      (when-let [sheet (get sheets sheet-id)]
+        {:save-sheet! sheet}))))

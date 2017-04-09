@@ -10,10 +10,13 @@
     provided with an Error instance or a sheet map. Info
     is a map that should contain:
     - :name  The name of the sheet")
+  (delete-sheet
+    [this info]
+    "Delete a sheet")
   (refresh-sheet
     [this info on-complete]
     "Fetch the contents of a sheet if we don't already have it.
     on-complete should be called with the contents as edn")
-  (delete-sheet
+  (save-sheet
     [this info]
-    "Delete a sheet"))
+    "Save changes to a sheet"))
