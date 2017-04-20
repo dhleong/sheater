@@ -43,7 +43,7 @@
   and a live preview of your changes, letting you know when there are
   errors in your input"
   [sheet-id page-atom]
-  (let [page (subscribe [:sheet-page sheet-id @page-atom])
+  (let [page (subscribe [:active-page @page-atom])
         state (subscribe [:active-state])
         parse-error (reagent/atom nil)
         render-preview

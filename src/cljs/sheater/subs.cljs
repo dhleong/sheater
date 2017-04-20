@@ -28,16 +28,16 @@
          vals
          (sort-by :name))))
 
-(reg-sub
-  :sheet-page
-  (fn [[_ sheet-id] _]
-    (subscribe [:sheet sheet-id]))
-  (fn [sheet, [_ _ page-id]]
-    (->> sheet
-         :data
-         :pages
-         (filter (comp (partial = page-id) :name))
-         first)))
+;; (reg-sub
+;;   :sheet-page
+;;   (fn [[_ sheet-id] _]
+;;     (subscribe [:sheet sheet-id]))
+;;   (fn [sheet, [_ _ page-id]]
+;;     (->> sheet
+;;          :data
+;;          :pages
+;;          (filter (comp (partial = page-id) :name))
+;;          first)))
 
 (reg-sub
   :active-sheet-id

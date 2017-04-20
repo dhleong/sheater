@@ -45,7 +45,6 @@
                                ~(:name page)
                                ~static-key])))
       \# (let [data-key (keyword (subs n 1))]
-           (println "data!" (subs n 1) state)
            (get state data-key))
       ; normal keyword
       kw)))
