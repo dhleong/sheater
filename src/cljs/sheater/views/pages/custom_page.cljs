@@ -1,7 +1,17 @@
 (ns ^{:author "Daniel Leong"
       :doc "custom-page"}
   sheater.views.pages.custom-page
-  (:require [re-com.core :as rc]))
+  (:require [re-com.core :as rc]
+            [cljs.js :refer [empty-state eval js-eval]]))
+
+(defn compile-code
+  [form]
+  (eval (empty-state)
+        form
+        {:eval       js-eval
+         :source-map true
+         :context    :expr}
+        :value))
 
 (declare translate)
 
@@ -17,9 +27,20 @@
   (println "INFLATE FUN:" fun)
   true)
 
+(defn flatten-vec
+  [to-vec]
+  (vec
+    (mapcat
+      (fn [item]
+        (if (seq? item)
+          item
+          [item]))
+      to-vec)))
+
 (defn translate
   [spec state element]
-  (if (vector? element)
+  (cond
+    (vector? element)
     (let [kind (first element)]
       (case kind
         :rows (wrap-with-rc
@@ -39,13 +60,21 @@
                      :disabled? true])
         ; leave it alone, but translate its kids
         (if-let [kids (seq (rest element))]
-          (vec (cons kind
-                     (map (partial translate spec state) kids)))
+          (flatten-vec
+            (cons kind
+                  (map (partial translate spec state) kids)))
           element)))
-    element))
+    (= 'for (first element))
+    (let [[_ bindings body] element]
+      (map (partial translate spec state)
+           (compile-code
+             `(for ~bindings ~body))))
+    :else element))
 
 (defn render
   [page state]
   (let [spec (:spec page)]
     [:div
-     (translate spec state spec)]))
+     (let [tr (translate spec state spec)]
+       (cljs.pprint/pprint tr)
+       tr)]))
