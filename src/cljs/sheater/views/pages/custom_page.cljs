@@ -6,28 +6,46 @@
 (declare translate)
 
 (defn wrap-with-rc
-  [fun children]
+  [spec state fun children]
   [fun
    :children
-   (vec (map translate children))])
+   (vec (map (partial translate spec state) children))])
+
+(defn inflate-value-fn
+  [spec state fun]
+  ; TODO
+  (println "INFLATE FUN:" fun)
+  true)
 
 (defn translate
-  [element]
+  [spec state element]
   (if (vector? element)
     (let [kind (first element)]
       (case kind
         :rows (wrap-with-rc
+                spec
+                state
                 rc/v-box
                 (rest element))
         :cols (wrap-with-rc
+                spec
+                state
                 rc/h-box
                 (rest element))
-        ; leave it alone
-        element))
+        :checkbox (let [v (second element)]
+                    [rc/checkbox
+                     :model (inflate-value-fn spec state (:checked v))
+                     :on-change (fn [_] nil)
+                     :disabled? true])
+        ; leave it alone, but translate its kids
+        (if-let [kids (seq (rest element))]
+          (vec (cons kind
+                     (map (partial translate spec state) kids)))
+          element)))
     element))
 
 (defn render
   [page state]
   (let [spec (:spec page)]
     [:div
-     (translate spec)]))
+     (translate spec state spec)]))

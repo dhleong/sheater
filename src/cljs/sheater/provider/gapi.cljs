@@ -55,10 +55,10 @@
   (println "signed-in? <-" signed-in?)
   (dispatch [:assoc-provider! :gapi :ready? signed-in?])
   (when signed-in?
-    (-> (js/gapi.client.drive.files.list
-          #js {:pageSize 50
-               :spaces "appDataFolder"
-               :fields "nextPageToken, files(id, name)"})
+    (-> js/gapi.client.drive.files
+        (.list #js {:pageSize 50
+                    :spaces "appDataFolder"
+                    :fields "nextPageToken, files(id, name)"})
         (.then on-files-list
                (fn [e]
                  (println "ERROR listing files" e))))))
@@ -217,9 +217,9 @@
   ;
   (refresh-sheet [this info on-complete]
     (println "Refresh " (:gapi-id info))
-    (-> (js/gapi.client.drive.files.get
-          #js {:fileId (:gapi-id info)
-               :alt "media"})
+    (-> js/gapi.client.drive.files
+        (.get #js {:fileId (:gapi-id info)
+                   :alt "media"})
         (.then (fn [resp]
                  (js/console.log resp)
                  (when-let [body (.-body resp)]
