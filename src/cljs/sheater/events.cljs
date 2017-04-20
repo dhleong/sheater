@@ -63,6 +63,19 @@
                      pages-list))))))
 
 (reg-event-db
+  :edit-sheet-state
+  [trim-v]
+  (fn [db [k v]]
+    (let [sheet-id (-> db
+                       :active-panel
+                       second)]
+      (println "Edit" sheet-id k v)
+      (update-in db
+                 [:sheets sheet-id :state]
+                 assoc
+                 k v))))
+
+(reg-event-db
   :delete-sheet!
   [(path :sheets) trim-v]
   (fn [sheets [sheet-id]]

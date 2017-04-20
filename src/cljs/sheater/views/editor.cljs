@@ -44,6 +44,7 @@
   errors in your input"
   [sheet-id page-atom]
   (let [page (subscribe [:sheet-page sheet-id @page-atom])
+        state (subscribe [:active-state])
         parse-error (reagent/atom nil)
         render-preview
         (fn [component]
@@ -52,10 +53,10 @@
               (reagent/render
                 (if-let [e @parse-error]
                   [parse-error e]
-                  [viewer/render-page @page {}])
+                  [viewer/render-page @page @state])
                 preview-node)
               (catch :default e
-                (println e)
+                (js/console.error (.-stack e))
                 ; NOTE: we would like to render like this,
                 ; but it doesn't seem to work consistently...
                 #_(reagent/render [parse-error e] preview-node)
