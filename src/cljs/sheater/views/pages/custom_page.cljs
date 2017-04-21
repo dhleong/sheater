@@ -3,7 +3,8 @@
   sheater.views.pages.custom-page
   (:require [cljs.js :refer [empty-state eval js-eval]]
             [re-com.core :as rc]
-            [re-frame.core :refer [subscribe dispatch]]))
+            [re-frame.core :refer [subscribe dispatch]]
+            [sheater.views.pages.custom-page.widgets :as widg]))
 
 (defn write-state
   [k v]
@@ -97,10 +98,9 @@
 
 (defn inflate-value-fn
   [page state {:keys [symbols?]} fun]
-  ; TODO
-  (println "INFLATE FUN:" fun)
+  ;; (println "INFLATE FUN:" fun)
   (let [form (inflate-value-fn-part page state fun)]
-    (println "->" form)
+    ;; (println "->" form)
     (if symbols?
       form
       (eval-form form))))
@@ -134,21 +134,35 @@
   (when (keyword? kind)
     (let [n (name kind)
           id-sep (.indexOf n "#")
-          has-auto-id? (not= id-sep -1)]
+          has-auto-id? (not= id-sep -1) ]
       (when (or has-auto-id?
                 (:id arg))
-        (let [id (if has-auto-id?
+        (let [el (keyword
+                   (if has-auto-id?
+                     (subs n 0 id-sep)
+                     n))
+              id (if has-auto-id?
                    (keyword (subs n (inc id-sep)))
                    (:id arg))
-              value (get state id "")]
-          ;; (println "TRANSLATE" symbols? kind id)
-          (if symbols?
-            `[rc/input-text
-              :model (str @(subscribe [:active-state ~id]))
-              :on-change (partial write-state ~id)]
-            [rc/input-text
-             :model value
-             :on-change (partial write-state id)]))))))
+              arg (if has-auto-id?
+                    (assoc arg :id id)
+                    arg)]
+          ;; (println "TRANSLATE" symbols? kind id
+          (case el
+            :selectable-list
+            (let [arg (update arg :items
+                              (partial inflate-value-fn page state opts))]
+              (if symbols?
+                `[widg/selectable-list ~arg]
+                [widg/selectable-list arg]))
+            ; default to :input
+            (if symbols?
+              `[rc/input-text
+                :model (str @(subscribe [:active-state ~id]))
+                :on-change (partial write-state ~id)]
+              [rc/input-text
+               :model (get state id "")
+               :on-change (partial write-state id)])))))))
 
 ;; TODO do this just once and cache the result.
 ;; Otherwise, switching pages on even a moderately

@@ -70,7 +70,7 @@
        (fn []
          (let [page @page
                _ @parse-error] ; deref to connect signal
-           (println page)
+           ;; (println page)
            [rc/v-box
             :height "100%"
             :children
