@@ -5,30 +5,52 @@
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]))
 
-(defonce state (atom nil))
-
 (defn write-state
   [k v]
   (println k " <- " v)
   (dispatch [:edit-sheet-state k v]))
 
+(declare mathify translate)
+
+;;
+;; Clojurescript eval
+
+(defonce cached-eval-state (atom nil))
+
+(defn- eval-in
+  [state form]
+  (eval state
+        form
+        {:eval js-eval
+         :context :expr
+         :source-map true
+         :ns 'sheater.views.pages.custom-page}
+        :value))
+
 (defn eval-form
   [form]
   (let [compiler-state
-        (if-let [cached-state @state]
-          cached-state
+        (if-let [cached @cached-eval-state]
+          cached
           (let [new-state (empty-state)]
-            (reset! state new-state)))]
-    (eval compiler-state
-          form
-          {:eval       js-eval
-           :analyze-deps false
-           :source-map true
-           :context    :expr
-           :ns 'sheater.views.pages.custom-page}
-          :value)))
+            ;
+            ; eval an ns so the imports are recognized
+            (eval-in
+              new-state
+              '(ns sheater.views.pages.custom-page
+                 (:require [re-frame.core :as re]
+                           [re-com.core :as rc])))
+            ;
+            ; eval a declare so our functions are also recognized
+            (eval-in
+              new-state
+              '(declare write-state mathify))
+            (reset! cached-eval-state new-state)))]
+    (eval-in compiler-state
+             form)))
 
-(declare translate)
+;;
+;; Custom form translation/inflation
 
 (defn wrap-with-rc
   [page state fun children]
@@ -49,12 +71,28 @@
       ; normal keyword
       kw)))
 
+(defn ->number
+  [to-coerce]
+  (when to-coerce
+    (cond
+      (number? to-coerce) to-coerce
+      (not= -1 (.indexOf to-coerce ".")) (js/parseFloat to-coerce)
+      :else (js/parseInt to-coerce))))
+
+(defn mathify
+  [op]
+  (if (symbol? op)
+    `(mathify ~op)
+    (fn mathified [& args]
+      (apply op (map ->number args)))))
+
 (defn inflate-value-fn-part
   [page state part]
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
     (seq? part) (map (partial inflate-value-fn-part page state) part)
     (vector? part) (vec (map (partial inflate-value-fn-part page state) part))
+    (contains? #{'+ '- '* '/} part) (mathify part)
     :else part))
 
 (defn inflate-value-fn
@@ -63,7 +101,9 @@
   (println "INFLATE FUN:" fun)
   (let [form (inflate-value-fn-part page state fun)]
     (println "->" form)
-    form))
+    (if symbols?
+      form
+      (eval-form form))))
 
 (defn flatten-vec
   [to-vec]
@@ -146,7 +186,11 @@
                      (map (partial translate page state opts) kids)))
              element))))
      (= 'for (first element)) (inflate-for page state element)
+     (seq? element) (inflate-value-fn page state opts element)
      :else element)))
+
+;;
+;; Main render
 
 (defn render
   [page state]

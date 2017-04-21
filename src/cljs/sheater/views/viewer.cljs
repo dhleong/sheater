@@ -69,7 +69,7 @@
               :pages
               (filter (comp (partial = @page) :name))
               first)
-         (:state info)]
+         @(subscribe [:active-state])]
         [:div "TODO:" info]])]))
 
 (defn panel

@@ -71,7 +71,7 @@
                        second)]
       (println "Edit" sheet-id k v)
       (update-in db
-                 [:sheets sheet-id :state]
+                 [:sheets sheet-id :data :state]
                  assoc
                  k v))))
 

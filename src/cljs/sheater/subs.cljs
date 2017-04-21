@@ -63,9 +63,9 @@
 ; :state of the :active-sheet
 (reg-sub
   :active-state
-  :<- [:active-sheet]
-  (fn [sheet [_ & ks]]
-    (or (get-in sheet (cons :state ks))
+  :<- [:active-data]
+  (fn [data [_ & ks]]
+    (or (get-in data (cons :state ks))
         (when-not ks
           {}))))
 
