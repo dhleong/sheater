@@ -56,7 +56,7 @@
 
 (defn picker
   [opts]
-  {:pre [(:items opts)
+  {:pre [(contains? opts :items)
          (:id opts)]}
   (let [id (:id opts)
         items (->items-with-ids opts)
