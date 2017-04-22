@@ -149,12 +149,20 @@
                     arg)]
           ;; (println "TRANSLATE" symbols? kind id
           (case el
+            ; FIXME we should be able to refactor this to
+            ; just use a nice, simple map
             :selectable-list
             (let [arg (update arg :items
                               (partial inflate-value-fn page state opts))]
               (if symbols?
                 `[widg/selectable-list ~arg]
                 [widg/selectable-list arg]))
+            :picker
+            (let [arg (update arg :items
+                              (partial inflate-value-fn page state opts))]
+              (if symbols?
+                `[widg/picker ~arg]
+                [widg/picker arg]))
             ; default to :input
             (if symbols?
               `[rc/input-text

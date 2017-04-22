@@ -16,18 +16,41 @@
 
 (defn ensure-id
   [item]
-  (if (:id item)
-    item
-    (assoc item :id (->id (:label item)))))
+  (cond
+    (:id item) item
+    (string? item) (ensure-id {:id item :label item})
+    :else (assoc item :id (->id (:label item)))))
+
+(defn ->items-with-ids
+  "Given an opts map which is assumed to have an :items
+   list, return a seq of items that each definitely have
+   an :id"
+  [opts]
+  (->> opts
+       :items
+       (map ensure-id)))
+
+(defn picker
+  [opts]
+  {:pre [(:items opts)
+         (:id opts)]}
+  (let [id (:id opts)
+        items (->items-with-ids opts)
+        selected @(subscribe [:active-state id])]
+    [rc/single-dropdown
+     :choices items
+     :filter-box? true
+     :model selected
+     :width "100%"
+     :on-change (fn [new-selection]
+                  (dispatch [:edit-sheet-state id new-selection]))]))
 
 (defn selectable-list
   [opts]
   {:pre [(:items opts)
          (:id opts)]}
   (let [id (:id opts)
-        items (->> opts
-                   :items
-                   (map ensure-id))
+        items (->items-with-ids opts)
         selected-set @(subscribe [:active-state id])
         selected (->> items
                       (filter (fn [item]
