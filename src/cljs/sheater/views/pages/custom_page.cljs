@@ -3,6 +3,7 @@
   sheater.views.pages.custom-page
   (:require [clojure.string :as str]
             [cljs.js :refer [empty-state eval js-eval]]
+            [reagent.impl.template :refer [parse-tag]]
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]
             [sheater.views.pages.custom-page.widgets :as widg]))
@@ -146,36 +147,37 @@
       ;; (cljs.pprint/pprint evald)
       evald)))
 
-(defn translate-auto-input
-  "The last arg is guaranteed to be a vector"
-  [page state {:keys [symbols?] :as opts} [kind arg]]
+(defn destructure-auto-input
+  [[kind arg]]
   (when (keyword? kind)
-    (let [n (name kind)
-          id-sep (.indexOf n "#")
-          has-auto-id? (not= id-sep -1) ]
-      (when (or has-auto-id?
-                (:id arg))
-        ; FIXME: simplify all of this:
-        (let [el (keyword
-                   (if has-auto-id?
-                     (subs n 0 id-sep)
-                     n))
-              id (if has-auto-id?
-                   (keyword (subs n (inc id-sep)))
-                   (:id arg))
-              arg (if has-auto-id?
-                    (assoc arg :id id)
-                    arg)
-              arg (if (:items arg)
-                    (update arg :items
-                            (partial inflate-value-fn page state opts))
-                    arg)]
-          ; finally, let the right one in:
-          (if-let [factory (get widget-types el)]
-            (if symbols?
-              `[~(:symbol factory) ~arg]
-              [(:fn factory) arg])
-            [:div "Unknown element type" el]))))))
+    (let [parsed (parse-tag kind)
+          name (.-name parsed)
+          id (or (.-id parsed)
+                 (:id arg))
+          class (or (.-className parsed)
+                    (:class arg))]
+      (when id
+        [(keyword name)
+         (assoc arg
+                :id (if (string? id)
+                      (keyword id)
+                      id)
+                :class class)]))))
+
+(defn translate-auto-input
+  "`element` is guaranteed to be a vector"
+  [page state {:keys [symbols?] :as opts} element]
+  (when-let [[el arg] (destructure-auto-input element)]
+    (let [arg (if (:items arg)
+                (update arg :items
+                        (partial inflate-value-fn page state opts))
+                arg)]
+      ; finally, let the right one in:
+      (if-let [factory (get widget-types el)]
+        (if symbols?
+          `[~(:symbol factory) ~arg]
+          [(:fn factory) arg])
+        [:div "Unknown element type" el]))))
 
 ;; TODO do this just once and cache the result.
 ;; Otherwise, switching pages on even a moderately

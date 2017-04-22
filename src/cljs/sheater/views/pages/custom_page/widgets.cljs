@@ -45,15 +45,28 @@
 ;; Widgets
 ;;
 
+(def input-class-spec
+  {"number" {:regex #"[0-9]+"
+             :width "3em"}
+   "big-number" {:regex #"[0-9]+"
+                 :width "6em"}})
+
 (defn input
   "Basic text input widget"
   [opts]
   {:pre [(:id opts)]}
-  (let [id (:id opts)]
+  (let [id (:id opts)
+        class (:class opts)
+        regex (get-in input-class-spec [class :regex])]
+    (when regex
+      (println id class regex))
     [rc/input-text
+     :class class
+     :width (get-in input-class-spec [class :width])
      :model (or @(subscribe [:active-state id])
                 "")
-     :on-change (partial write-state id)]))
+     :on-change (partial write-state id)
+     :validation-regex regex]))
 
 (defn picker
   [opts]
