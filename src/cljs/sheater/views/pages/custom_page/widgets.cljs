@@ -2,6 +2,7 @@
       :doc "custom-page widgets"}
   sheater.views.pages.custom-page.widgets
   (:require [clojure.string :as str]
+            [reagent.core :as reagent]
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]))
 
@@ -69,41 +70,74 @@
      :on-change (fn [new-selection]
                   (dispatch [:edit-sheet-state id new-selection]))]))
 
+(defn selectable-set-base
+  [opts wrap-children]
+  {:pre [(contains? opts :items)
+         (:id opts)]}
+  (let [show-picker? (reagent/atom false)
+        mouse-over? (reagent/atom false)]
+    (fn []
+      (let [id (:id opts)
+            items (->items-with-ids opts)
+            selected-set @(subscribe [:active-state id])
+            selected (->> items
+                          (filter (fn [item]
+                                    (contains? selected-set
+                                               (:id item))))
+                          (sort-by :label))
+            is-mouse-over? @mouse-over?]
+        (wrap-children
+          mouse-over?
+          [(for [s selected]
+             ^{:key (:id s)} [rc/h-box
+                              :children
+                              [(:label s)
+                               (when-let [desc (:desc s)]
+                                 [rc/info-button
+                                  :info desc])
+                               [rc/row-button
+                                :md-icon-name "zmdi-delete"
+                                :mouse-over-row? is-mouse-over?
+                                :on-click
+                                (fn []
+                                  (let [new-val (disj selected-set (:id s))]
+                                    (dispatch [:edit-sheet-state id new-val])))]]])
+           (with-meta
+             (if @show-picker?
+               [rc/single-dropdown
+                :choices items
+                :filter-box? true
+                :model nil
+                :placeholder (:placeholder opts "Select one")
+                :on-change (fn [selected-id]
+                             (let [new-val (if (set? selected-set)
+                                             (conj selected-set selected-id)
+                                             #{selected-id})]
+                               (reset! show-picker? false)
+                               (dispatch [:edit-sheet-state id new-val])))]
+               [rc/md-icon-button
+                :md-icon-name "zmdi-plus"
+                :size :smaller
+                :on-click #(reset! show-picker? true)])
+             {:key :-add-new-element})])))))
+
+(defn selectable-set
+  [opts]
+  (selectable-set-base
+    opts
+    (fn [mouse-over? kids]
+      [:div.selectable-set
+       {:on-mouse-over #(reset! mouse-over? true)
+        :on-mouse-out #(reset! mouse-over? false)}
+       (seq kids)])))
+
 (defn selectable-list
   [opts]
-  {:pre [(:items opts)
-         (:id opts)]}
-  (let [id (:id opts)
-        items (->items-with-ids opts)
-        selected-set @(subscribe [:active-state id])
-        selected (->> items
-                      (filter (fn [item]
-                                (contains? selected-set
-                                           (:id item))))
-                      (sort-by :label))]
-    [rc/v-box
-     :children
-     [(for [s selected]
-        ^{:key (:id s)} [rc/h-box
-                         :children
-                         [(:label s)
-                          (when-let [desc (:desc s)]
-                            [rc/info-button
-                             :info desc])
-                          [rc/md-icon-button
-                           :md-icon-name "zmdi-delete"
-                           :size :smaller
-                           :on-click
-                           (fn []
-                             (let [new-val (disj selected-set (:id s))]
-                               (dispatch [:edit-sheet-state id new-val])))]]])
-      [rc/single-dropdown
-       :choices items
-       :filter-box? true
-       :model nil
-       :placeholder (:placeholder opts "Select one")
-       :on-change (fn [selected-id]
-                    (let [new-val (if (set? selected-set)
-                                    (conj selected-set selected-id)
-                                    #{selected-id})]
-                      (dispatch [:edit-sheet-state id new-val])))]]]))
+  (selectable-set-base
+    opts
+    (fn [mouse-over? kids]
+      [rc/v-box
+       :attr
+       {:on-mouse-over #(reset! mouse-over? true)
+        :on-mouse-out #(reset! mouse-over? false)}
+       :children kids])))

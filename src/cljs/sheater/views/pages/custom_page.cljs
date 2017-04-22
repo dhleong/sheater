@@ -13,6 +13,8 @@
             :fn widg/picker}
    :selectable-list {:symbol `widg/selectable-list
                      :fn widg/selectable-list}
+   :selectable-set {:symbol `widg/selectable-set
+                    :fn widg/selectable-set}
    :input {:symbol `widg/input
            :fn widg/input}})
 
