@@ -58,8 +58,6 @@
   (let [id (:id opts)
         class (:class opts)
         regex (get-in input-class-spec [class :regex])]
-    (when regex
-      (println id class regex))
     [rc/input-text
      :width (get-in input-class-spec [class :width])
      :model (or @(subscribe [:active-state id])
