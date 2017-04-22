@@ -46,10 +46,10 @@
 ;;
 
 (def input-class-spec
-  {"number" {:regex #"[0-9]+"
-             :width "3em"}
-   "big-number" {:regex #"[0-9]+"
-                 :width "6em"}})
+  {"number" {:regex #"^[0-9]*$"
+             :width "4em"}
+   "big-number" {:regex #"^[0-9]*$"
+                 :width "7em"}})
 
 (defn input
   "Basic text input widget"
@@ -61,7 +61,6 @@
     (when regex
       (println id class regex))
     [rc/input-text
-     :class class
      :width (get-in input-class-spec [class :width])
      :model (or @(subscribe [:active-state id])
                 "")
