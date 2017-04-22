@@ -59,7 +59,9 @@
         class (:class opts)
         regex (get-in input-class-spec [class :regex])]
     [rc/input-text
-     :width (get-in input-class-spec [class :width])
+     :class class
+     :width (or (:width opts)
+                (get-in input-class-spec [class :width]))
      :model (or @(subscribe [:active-state id])
                 "")
      :on-change (partial write-state id)
@@ -151,3 +153,27 @@
        {:on-mouse-over #(reset! mouse-over? true)
         :on-mouse-out #(reset! mouse-over? false)}
        :children kids])))
+
+(defn partial-number
+  "A 'partial number' has a current value and a max value.
+   The id of the max value is this (str id '-max')"
+  [opts]
+  {:pre [(:id opts)]}
+  (let [id (:id opts)
+        class (or (:class opts)
+                  "number")
+        max-id (keyword (str (name id) "-max"))]
+    (println "partial:" class)
+    [rc/v-box
+     :width "90px"
+     :children
+     [[input {:id id
+              :width "100%"
+              :align :center
+              :class class}]
+      [rc/h-box
+       :justify :center
+       :children
+       ["Max:"
+        [input {:id max-id
+                :class class}]]]]]))

@@ -16,10 +16,11 @@
       (str/replace #"-" "_")))
 
 (def widget-types
-  (->> [[:picker `widg/picker]
+  (->> [[:input `widg/input]
+        [:partial-number `widg/partial-number]
+        [:picker `widg/picker]
         [:selectable-list `widg/selectable-list]
-        [:selectable-set `widg/selectable-set]
-        [:input `widg/input]]
+        [:selectable-set `widg/selectable-set]]
 
        ; dynamically generate the mapping once
        ; to avoid a lot of yuck. The resulting map
