@@ -6,12 +6,15 @@
             [re-frame.core :refer [subscribe dispatch]]
             [sheater.views.pages.custom-page.widgets :as widg]))
 
-(defn write-state
-  [k v]
-  (println k " <- " v)
-  (dispatch [:edit-sheet-state k v]))
-
 (declare mathify translate)
+
+(def widget-types
+  {:picker {:symbol `widg/picker
+            :fn widg/picker}
+   :selectable-list {:symbol `widg/selectable-list
+                     :fn widg/selectable-list}
+   :input {:symbol `widg/input
+           :fn widg/input}})
 
 ;;
 ;; Clojurescript eval
@@ -40,12 +43,13 @@
               new-state
               '(ns sheater.views.pages.custom-page
                  (:require [re-frame.core :as re]
-                           [re-com.core :as rc])))
+                           [re-com.core :as rc]
+                           [sheater.views.pages.custom-page.widgets :as widg])))
             ;
             ; eval a declare so our functions are also recognized
             (eval-in
               new-state
-              '(declare write-state mathify))
+              '(declare mathify))
             (reset! cached-eval-state new-state)))]
     (eval-in compiler-state
              form)))
@@ -137,6 +141,7 @@
           has-auto-id? (not= id-sep -1) ]
       (when (or has-auto-id?
                 (:id arg))
+        ; FIXME: simplify all of this:
         (let [el (keyword
                    (if has-auto-id?
                      (subs n 0 id-sep)
@@ -146,31 +151,17 @@
                    (:id arg))
               arg (if has-auto-id?
                     (assoc arg :id id)
+                    arg)
+              arg (if (:items arg)
+                    (update arg :items
+                            (partial inflate-value-fn page state opts))
                     arg)]
-          ;; (println "TRANSLATE" symbols? kind id
-          (case el
-            ; FIXME we should be able to refactor this to
-            ; just use a nice, simple map
-            :selectable-list
-            (let [arg (update arg :items
-                              (partial inflate-value-fn page state opts))]
-              (if symbols?
-                `[widg/selectable-list ~arg]
-                [widg/selectable-list arg]))
-            :picker
-            (let [arg (update arg :items
-                              (partial inflate-value-fn page state opts))]
-              (if symbols?
-                `[widg/picker ~arg]
-                [widg/picker arg]))
-            ; default to :input
+          ; finally, let the right one in:
+          (if-let [factory (get widget-types el)]
             (if symbols?
-              `[rc/input-text
-                :model (str @(subscribe [:active-state ~id]))
-                :on-change (partial write-state ~id)]
-              [rc/input-text
-               :model (get state id "")
-               :on-change (partial write-state id)])))))))
+              `[~(:symbol factory) ~arg]
+              [(:fn factory) arg])
+            [:div "Unknown element type" el]))))))
 
 ;; TODO do this just once and cache the result.
 ;; Otherwise, switching pages on even a moderately

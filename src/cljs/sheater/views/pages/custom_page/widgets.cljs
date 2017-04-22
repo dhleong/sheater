@@ -5,6 +5,10 @@
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]))
 
+;;
+;; Utils
+;;
+
 (defn ->id
   [string]
   (-> string
@@ -29,6 +33,26 @@
   (->> opts
        :items
        (map ensure-id)))
+
+(defn write-state
+  [k v]
+  (println k " <- " v)
+  (dispatch [:edit-sheet-state k v]))
+
+
+;;
+;; Widgets
+;;
+
+(defn input
+  "Basic text input widget"
+  [opts]
+  {:pre [(:id opts)]}
+  (let [id (:id opts)]
+    [rc/input-text
+     :model (or @(subscribe [:active-state id])
+                "")
+     :on-change (partial write-state id)]))
 
 (defn picker
   [opts]
