@@ -1,22 +1,34 @@
 (ns ^{:author "Daniel Leong"
       :doc "custom-page"}
   sheater.views.pages.custom-page
-  (:require [cljs.js :refer [empty-state eval js-eval]]
+  (:require [clojure.string :as str]
+            [cljs.js :refer [empty-state eval js-eval]]
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]
             [sheater.views.pages.custom-page.widgets :as widg]))
 
 (declare mathify translate)
 
+(defn- ->js [var-name]
+  (-> var-name
+      (str/replace #"/" ".")
+      (str/replace #"-" "_")))
+
 (def widget-types
-  {:picker {:symbol `widg/picker
-            :fn widg/picker}
-   :selectable-list {:symbol `widg/selectable-list
-                     :fn widg/selectable-list}
-   :selectable-set {:symbol `widg/selectable-set
-                    :fn widg/selectable-set}
-   :input {:symbol `widg/input
-           :fn widg/input}})
+  (->> [[:picker `widg/picker]
+        [:selectable-list `widg/selectable-list]
+        [:selectable-set `widg/selectable-set]
+        [:input `widg/input]]
+
+       ; dynamically generate the mapping once
+       ; to avoid a lot of yuck. The resulting map
+       ; looks like
+       ;  {:key {:symbol widg/symbol :fn actual-fn}
+       (map
+         (fn [[k sym]]
+           [k {:symbol sym
+               :fn (js/eval (->js (str sym)))}]))
+       (into {})))
 
 ;;
 ;; Clojurescript eval
