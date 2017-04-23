@@ -323,7 +323,7 @@
          (:id opts)]}
   (let [show-picker? (reagent/atom false)
         mouse-over? (reagent/atom false)]
-    (fn []
+    (fn [opts]
       (let [id (:id opts)
             items (->items-with-ids opts)
             selected-set (->state id)
