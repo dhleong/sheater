@@ -85,6 +85,61 @@
      :on-change (partial write-state id)
      :validation-regex regex]))
 
+(defn input-calc
+  "input-calc is like a fancy input.number (or input.big-number)
+   that when selected, pops up a calculator for easy editing."
+  [opts]
+  {:pre [(:id opts)]}
+  (let [id (:id opts)
+        class (or (:class opts)
+                  "number")
+        regex (get-in input-class-spec ["number" :regex])
+        show-calc? (reagent/atom false)]
+    (fn []
+      [rc/popover-anchor-wrapper
+       :showing? show-calc?
+       :position :right-above
+
+       :anchor
+       [rc/input-text
+        :class class
+        :width (or (:width opts)
+                   (get-in input-class-spec [class :width]))
+        :model (or (str (->state id)) "")
+        :on-change (partial write-state id)
+        :attr {:on-click
+               (fn [e]
+                 (.preventDefault e)
+                 (reset! show-calc? true))}
+        :validation-regex regex]
+
+       :popover
+       [rc/popover-content-wrapper
+        :title "Adjust Value"
+        :on-cancel #(reset! show-calc? false)
+        :no-clip? true
+
+        :body
+        [:div [rc/input-text
+               :model ""
+               :width "150px"
+               :attr {:auto-focus true}
+               :placeholder "+/- number"
+               :on-change (fn [v]
+                            (when-let [amount (js/parseInt v)]
+                              (reset! show-calc? false)
+                              (when-not (js/isNaN amount)
+                                (println "CHANGE!" amount)
+                                (write-state
+                                  id (min
+                                       (:max opts 99999999)
+                                       (max
+                                         (:min opts 0)
+                                         (+ (js/parseInt (->state id))
+                                            amount)))))))
+               :validation-regex #"[-+]?[0-9]*"]]]])))
+
+
 (defn picker
   [opts]
   {:pre [(contains? opts :items)
@@ -346,10 +401,12 @@
     [rc/v-box
      :width "90px"
      :children
-     [[input {:id id
-              :width "100%"
-              :align :center
-              :class class}]
+     [[input-calc {:id id
+                   :width "100%"
+                   :align :center
+                   :class class
+                   :min (:min opts 0)
+                   :max (->state max-id)}]
       [rc/h-box
        :justify :center
        :children

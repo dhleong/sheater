@@ -18,6 +18,7 @@
 (def widget-types
   (->> [[:checkbox `widg/checkbox]
         [:input `widg/input]
+        [:input-calc `widg/input-calc]
         [:dynamic-table `widg/dynamic-table]
         [:partial-number `widg/partial-number]
         [:picker `widg/picker]
