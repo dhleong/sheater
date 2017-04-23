@@ -38,11 +38,22 @@
 
   (defroute "/sheets/:id" [id]
     (re-frame/dispatch [:set-active-panel
-                        :viewer (keyword id)]))
+                        :viewer [(keyword id)]]))
 
-  (defroute "/sheets/:id/edit" [id]
+  (defroute "/sheets/:id/:page" [id page]
     (re-frame/dispatch [:set-active-panel
-                        :editor (keyword id)]))
+                        :viewer [(keyword id)
+                                 page]]))
+
+  (defroute "/edit/:id" [id]
+    (re-frame/dispatch [:set-active-panel
+                        :editor [(keyword id)]]))
+
+  (defroute "/edit/:id/:page" [id page]
+    (re-frame/dispatch [:set-active-panel
+                        :editor [(keyword id)
+                                 page]]))
+
 
   ;; --------------------
   (hook-browser-navigation!))

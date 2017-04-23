@@ -24,7 +24,7 @@
   [page-info state]
   (if-let [page-type (:type page-info)]
     (case page-type
-      :notes [notes-page/render state]
+      :notes [notes-page/render (:name page-info) state]
       [rc/alert-box
        :alert-type :danger
        :body (str "Unknown page type: " page-type)])
@@ -32,13 +32,13 @@
 
 (defn render-sheet
   [page info]
-  (let [data (:data info)]
+  (let [data (:data info)
+        page (or page
+                 (when data
+                   (-> data :pages first :name)))]
     (when-not data
       ; don't got it? get it!
       (dispatch [:refresh! (:id info)]))
-    (when (and data
-               (nil? @page))
-      (reset! page (-> data :pages first :name)))
     [rc/v-box
      :height "100%"
      :children
@@ -54,7 +54,10 @@
            :level :level3]
           [rc/hyperlink-href
            :label "Edit"
-           :href (str "#/sheets/" (name (:id info)) "/edit")]
+           :href (str "#/edit/"
+                      (name (:id info))
+                      "/"
+                      page)]
           ;
           [rc/horizontal-tabs
            :tabs (->> data :pages
@@ -62,20 +65,24 @@
                              {:label (:name page)
                               :id (:name page)})))
            :model page
-           :on-change (fn [id]
-                        (reset! page id))]]]
+           :on-change
+           (fn [id]
+             (dispatch [:navigate-replace!
+                        (str
+                          "#/sheets/"
+                          (name (:id info))
+                          "/"
+                          id)]))]]]
         [render-page
          (->> data
               :pages
-              (filter (comp (partial = @page) :name))
+              (filter (comp (partial = page) :name))
               first)
-         @(subscribe [:active-state])]
-        [:div "TODO:" info]])]))
+         @(subscribe [:active-state])]])]))
 
 (defn panel
-  [id]
-  (let [info @(subscribe [:sheet id])
-        page (reagent/atom nil)]
+  [[id page]]
+  (let [info @(subscribe [:sheet id])]
     (if info
       [render-sheet page info]
       [four-oh-four])))

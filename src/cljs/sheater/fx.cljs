@@ -5,6 +5,21 @@
             [sheater.provider :refer [providers]]
             [sheater.provider.proto :refer [refresh-sheet save-sheet]]))
 
+;; -- Navigation --------------------------------------------------------------
+;; For when you can't just use href
+;;
+
+(reg-fx
+  :navigate!
+  (fn [url]
+    (set! js/window.location url)))
+
+(reg-fx
+  :navigate-replace!
+  (fn [url]
+    (js/window.location.replace url)))
+
+
 ;; -- Sheet Refresh -----------------------------------------------------------
 ;; For when we have the metadata of a sheet, but not its content
 ;;

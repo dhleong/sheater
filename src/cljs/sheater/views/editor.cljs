@@ -42,8 +42,8 @@
   "This complicated component renders an editor for the raw page template
   and a live preview of your changes, letting you know when there are
   errors in your input"
-  [sheet-id page-atom]
-  (let [page (subscribe [:active-page @page-atom])
+  [sheet-id page-id]
+  (let [page (subscribe [:active-page])
         state (subscribe [:active-state])
         parse-error (reagent/atom nil)
         render-preview
@@ -67,10 +67,9 @@
        :component-did-update render-preview
        :display-name "render-page-editor"
        :reagent-render
-       (fn []
+       (fn [sheet-id page-id]
          (let [page @page
                _ @parse-error] ; deref to connect signal
-           ;; (println page)
            [rc/v-box
             :height "100%"
             :children
@@ -90,21 +89,21 @@
                   (let [parsed (edn/read-string updated-page)]
                     (reset! parse-error nil)
                     (dispatch [:edit-sheet-page
-                               sheet-id @page-atom
+                               sheet-id page
                                parsed]))
                   (catch :default e
                     (println "Not valid edn:" updated-page e)
                     (reset! parse-error e))))]]]))})))
 
 (defn render-editor
-  [page-atom info]
-  (let [data (:data info)]
+  [page info]
+  (let [data (:data info)
+        page (or page
+                 (when data
+                   (-> data :pages first :name)))]
     (when-not data
       ; don't got it? get it!
       (dispatch [:refresh! (:id info)]))
-    (when (and data
-               (nil? @page-atom))
-      (reset! page-atom (-> data :pages first :name)))
     [rc/v-box
      :height "100%"
      :children
@@ -128,18 +127,23 @@
           ;
           [rc/horizontal-tabs
            :tabs (->> data :pages
-                      (map (fn [page-atom]
-                             {:label (:name page-atom)
-                              :id (:name page-atom)})))
-           :model page-atom
-           :on-change (fn [id]
-                        (reset! page-atom id))]]]
-        [render-page-editor (:id info) page-atom]])]))
+                      (map (fn [page]
+                             {:label (:name page)
+                              :id (:name page)})))
+           :model page
+           :on-change
+           (fn [id]
+             (dispatch [:navigate-replace!
+                        (str
+                          "#/edit/"
+                          (name (:id info))
+                          "/"
+                          id)]))]]]
+        [render-page-editor (:id info) page]])]))
 
 (defn panel
-  [id]
-  (let [info @(subscribe [:sheet id])
-        page-atom (reagent/atom nil)]
+  [[id page]]
+  (let [info @(subscribe [:sheet id])]
     (if info
-      [render-editor page-atom info]
+      [render-editor page info]
       [four-oh-four])))

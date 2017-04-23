@@ -45,7 +45,7 @@
   (fn [[panel arg] _]
     (when (or (= :viewer panel)
               (= :editor panel))
-      arg)))
+      (first arg))))
 
 (reg-sub
   :active-sheet
@@ -70,12 +70,18 @@
           {}))))
 
 ; specific page in the :active-sheet
+; NOTE: the page-id is optional; if not provided,
+; it will use whatever page is provided in :active-panel
+; Specifying page-id is deprecated in favor of this, though
+; there are probably some places where that is not sufficient
 (reg-sub
   :active-page
+  :<- [:active-panel]
   :<- [:active-data]
-  (fn [data [_ page-id]]
+  (fn [[panel data] [_ page-id]]
     (let [page-id (or (:name page-id)
-                      page-id)]
+                      page-id
+                      (-> panel second second))]
       (->> data
            :pages
            (filter (comp (partial = page-id) :name))

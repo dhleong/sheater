@@ -6,5 +6,5 @@
             [re-com.core :as rc]))
 
 (defn render
-  [state]
-  [:div "NOTES!"])
+  [page state]
+  [:div "NOTES!" page state])

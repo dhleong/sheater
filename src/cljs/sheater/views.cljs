@@ -59,7 +59,7 @@
     :sheet/create [create/panel]
     :viewer [viewer/panel args]
     :editor [editor/panel args]
-    [:div "Oops!"]))
+    [:div "Oops! Unknown panel:" panel-name]))
 
 (defn show-panel [panel-name]
   [panels panel-name])

@@ -13,6 +13,18 @@
  (fn  [_ _]
    db/default-db))
 
+(reg-event-fx
+  :navigate!
+  [trim-v]
+  (fn [_ [url]]
+    {:navigate! url}))
+
+(reg-event-fx
+  :navigate-replace!
+  [trim-v]
+  (fn [_ [url]]
+    {:navigate-replace! url}))
+
 (reg-event-db
  :set-active-panel
  [trim-v]
