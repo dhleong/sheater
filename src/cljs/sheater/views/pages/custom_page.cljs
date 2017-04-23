@@ -17,6 +17,7 @@
 
 (def widget-types
   (->> [[:input `widg/input]
+        [:dynamic-table `widg/dynamic-table]
         [:partial-number `widg/partial-number]
         [:picker `widg/picker]
         [:selectable-list `widg/selectable-list]

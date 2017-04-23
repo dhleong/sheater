@@ -19,6 +19,10 @@
       (str/replace #"[^a-z0-9-]" "")
       keyword))
 
+(defn ->state
+  [id]
+  (get @(subscribe [:active-state]) id))
+
 (defn ensure-id
   [item]
   (cond
@@ -62,8 +66,7 @@
      :class class
      :width (or (:width opts)
                 (get-in input-class-spec [class :width]))
-     :model (or @(subscribe [:active-state id])
-                "")
+     :model (or (->state id) "")
      :on-change (partial write-state id)
      :validation-regex regex]))
 
@@ -73,7 +76,7 @@
          (:id opts)]}
   (let [id (:id opts)
         items (->items-with-ids opts)
-        selected @(subscribe [:active-state id])]
+        selected (->state id)]
     [rc/single-dropdown
      :choices items
      :filter-box? true
@@ -81,6 +84,146 @@
      :width "100%"
      :on-change (fn [new-selection]
                   (dispatch [:edit-sheet-state id new-selection]))]))
+
+(defn dynamic-table
+  "A dynamic table is one whose values are added in a dialog, for
+   which you may provide suggestions."
+  [opts]
+  {:pre [(:id opts)
+         (:cols opts)]}
+  ;; FIXME: This is waaaaay too complicated and should probably be
+  ;; broken up into several smaller components....
+  (let [id (:id opts)
+        choices (:items opts)
+        columns (:cols opts)
+        show-prompt? (reagent/atom false)
+        header-row (vec
+                     (cons :tr
+                           (concat
+                             (map (fn [label]
+                                    [:th label])
+                                  columns)
+                             [[:th]])))
+        empty-new-row (vec
+                          (map
+                            (constantly "")
+                            columns))
+        new-row-value (reagent/atom empty-new-row)]
+    (fn []
+      (let [items (->state id)]
+        [:table
+         [:tbody
+
+          ;; Render items:
+          header-row
+
+          (for [item items]
+            (with-meta
+              ; complicated fanciness to build:
+              ; [:tr [:td ...] [:td [:delete-button]]]
+              (vec
+                (cons
+                  :tr
+                  (concat
+                    (map (fn [part]
+                           [:td part])
+                         item)
+                    [[:td
+                      [rc/row-button
+                       :md-icon-name "zmdi-delete"
+                       :mouse-over-row? true
+                       :on-click
+                       (fn [row]
+                         (when-let [idx (if-let [i (.indexOf items item)]
+                                          (when (not= -1 i) i))]
+                           ; remove the first instance of the item from the
+                           ; items vector
+                           (write-state
+                             id
+                             (vec
+                               (concat
+                                 (subvec items 0 idx)
+                                 (subvec items (inc idx)))))))]]])))
+              {:key (first item)}))
+
+          ;; Allow new inputs:
+          [:tr
+           [:td
+            {:colSpan (count columns)
+             :style {:text-align :center}}
+            [rc/popover-anchor-wrapper
+             :showing? show-prompt?
+             :anchor [rc/md-icon-button
+                      :md-icon-name "zmdi-plus"
+                      :on-click #(reset! show-prompt? true)]
+             :position :right-below
+
+             ;; The pick/input item popover prompt
+             :popover
+             [rc/popover-content-wrapper
+              :title "Add New"
+              :on-cancel #(reset! show-prompt? false)
+              :body
+              [:table
+               [:tbody
+
+                ;; picker:
+                (when choices
+                  [:tr
+                   [:td {:colSpan (count columns)
+                         :text-align :center}
+                    [rc/single-dropdown
+                     :choices (map
+                                (fn [item]
+                                  {:id (first item)
+                                   :label (first item)})
+                                choices)
+                     :filter-box? true
+                     :model nil
+                     :placeholder "Pick a value"
+                     :width "100%"
+                     :on-change (fn [first-val]
+                                  (let [vect (->> choices
+                                                  (filter
+                                                    (comp (partial = first-val)
+                                                          first))
+                                                  first)]
+                                    (reset! show-prompt? false)
+                                    (write-state id (conj items vect))))]]])
+                (when choices
+                  [:tr
+                   [:td {:colSpan (count columns)
+                         :text-align :center}
+                    " - Or -"]])
+
+                ;; manual input:
+                header-row
+                (vec
+                  (cons
+                    :tr
+                    (map-indexed
+                      (fn [index label]
+                        [:th
+                         [rc/input-text
+                          :model (nth @new-row-value index)
+                          :placeholder label
+                          :on-change
+                          (fn [new-value]
+                            (swap! new-row-value
+                                   assoc
+                                   index
+                                   new-value))]])
+                      columns)))
+                [:tr
+                 [:td
+                  {:colSpan (count columns)}
+                  [rc/button
+                   :label "Add!"
+                   :on-click (fn []
+                               (let [new-row @new-row-value]
+                                 (reset! show-prompt? false)
+                                 (reset! new-row-value empty-new-row)
+                                 (write-state id (conj items new-row))))]]]]]]]]]]]))))
 
 (defn selectable-set-base
   [opts wrap-children]
@@ -91,7 +234,7 @@
     (fn []
       (let [id (:id opts)
             items (->items-with-ids opts)
-            selected-set @(subscribe [:active-state id])
+            selected-set (->state id)
             selected (->> items
                           (filter (fn [item]
                                     (contains? selected-set
