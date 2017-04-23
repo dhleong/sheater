@@ -96,19 +96,23 @@
   (let [id (:id opts)
         choices (:items opts)
         columns (:cols opts)
+        auto-value (:value opts)
+        auto-value-count (count auto-value)
         show-prompt? (reagent/atom false)
         header-row (vec
                      (cons :tr
                            (concat
                              (map (fn [label]
-                                    [:th label])
+                                    [:th (when-not (= :desc label)
+                                           label)])
                                   columns)
                              [[:th]])))
         empty-new-row (vec
                           (map
                             (constantly "")
                             columns))
-        new-row-value (reagent/atom empty-new-row)]
+        new-row-value (reagent/atom empty-new-row)
+        desc-col (.indexOf columns :desc)]
     (fn []
       (let [items (->state id)]
         [:table
@@ -117,7 +121,9 @@
           ;; Render items:
           header-row
 
-          (for [item items]
+          (for [[i item] (map-indexed
+                           list
+                           (concat auto-value items))]
             (with-meta
               ; complicated fanciness to build:
               ; [:tr [:td ...] [:td [:delete-button]]]
@@ -125,25 +131,33 @@
                 (cons
                   :tr
                   (concat
-                    (map (fn [part]
-                           [:td part])
-                         item)
+                    (map-indexed
+                      (fn [col-index part]
+                        (if (= col-index desc-col)
+                          ; special :desc col is wrapped in an info button
+                          [:td
+                           [rc/info-button
+                            :info part]]
+                          ; regular col
+                          [:td part]))
+                      item)
                     [[:td
-                      [rc/row-button
-                       :md-icon-name "zmdi-delete"
-                       :mouse-over-row? true
-                       :on-click
-                       (fn [row]
-                         (when-let [idx (if-let [i (.indexOf items item)]
-                                          (when (not= -1 i) i))]
-                           ; remove the first instance of the item from the
-                           ; items vector
-                           (write-state
-                             id
-                             (vec
-                               (concat
-                                 (subvec items 0 idx)
-                                 (subvec items (inc idx)))))))]]])))
+                      (when (>= i auto-value-count)
+                        [rc/row-button
+                         :md-icon-name "zmdi-delete"
+                         :mouse-over-row? true
+                         :on-click
+                         (fn [row]
+                           (when-let [idx (if-let [i (.indexOf items item)]
+                                            (when (not= -1 i) i))]
+                             ; remove the first instance of the item from the
+                             ; items vector
+                             (write-state
+                               id
+                               (vec
+                                 (concat
+                                   (subvec items 0 idx)
+                                   (subvec items (inc idx)))))))])]])))
               {:key (first item)}))
 
           ;; Allow new inputs:
@@ -203,16 +217,24 @@
                     :tr
                     (map-indexed
                       (fn [index label]
-                        [:th
-                         [rc/input-text
-                          :model (nth @new-row-value index)
-                          :placeholder label
-                          :on-change
-                          (fn [new-value]
-                            (swap! new-row-value
-                                   assoc
-                                   index
-                                   new-value))]])
+                        (let [desc? (= :desc label)]
+                          [:th
+                           [(if desc?
+                              rc/input-textarea
+                              rc/input-text)
+                            :model (nth @new-row-value index)
+                            :placeholder (if (= :desc label)
+                                           "Long Description"
+                                           (str label))
+                            :width (if desc?
+                                     "170px"
+                                     "150px")
+                            :on-change
+                            (fn [new-value]
+                              (swap! new-row-value
+                                     assoc
+                                     index
+                                     new-value))]]))
                       columns)))
                 [:tr
                  [:td
@@ -306,7 +328,6 @@
         class (or (:class opts)
                   "number")
         max-id (keyword (str (name id) "-max"))]
-    (println "partial:" class)
     [rc/v-box
      :width "90px"
      :children

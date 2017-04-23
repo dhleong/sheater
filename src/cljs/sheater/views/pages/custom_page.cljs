@@ -173,6 +173,10 @@
     (let [arg (if (:items arg)
                 (update arg :items
                         (partial inflate-value-fn page state opts))
+                arg)
+          arg (if (:value arg)
+                (update arg :value
+                        (partial inflate-value-fn page state opts))
                 arg)]
       ; finally, let the right one in:
       (if-let [factory (get widget-types el)]
