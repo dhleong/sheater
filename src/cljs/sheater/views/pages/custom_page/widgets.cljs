@@ -166,8 +166,6 @@
   (let [id (:id opts)
         choices (:items opts)
         columns (:cols opts)
-        auto-value (:value opts)
-        auto-value-count (count auto-value)
         show-prompt? (reagent/atom false)
         header-row (vec
                      (cons :tr
@@ -183,8 +181,10 @@
                             columns))
         new-row-value (reagent/atom empty-new-row)
         desc-col (.indexOf columns :desc)]
-    (fn []
-      (let [items (->state id)]
+    (fn [opts]
+      (let [items (->state id)
+            auto-value (:value opts)
+            auto-value-count (count auto-value)]
         [:table
          [:tbody
 
