@@ -108,3 +108,47 @@
     (let [sheets db]  ; path'd
       (when-let [sheet (get sheets sheet-id)]
         {:save-sheet! sheet}))))
+
+;;
+;; Notes
+
+(reg-event-db
+  :delete-active-note!
+  [trim-v]
+  (fn [db [note]]
+    (let [active-panel (:active-panel db)
+          [active-sheet active-page] (second active-panel)
+          sheets (-> db :sheets)
+          note-created (:created note)]
+      (update-in db [:sheets active-sheet
+                     :data :state :sheater/notes
+                     active-page]
+                 (comp
+                   vec
+                   (partial
+                     remove
+                     (fn [candidate]
+                       (= note-created (:created candidate)))))))))
+
+(reg-event-db
+  :update-active-note!
+  [trim-v]
+  (fn [db [note]]
+    (let [active-panel (:active-panel db)
+          [active-sheet active-page] (second active-panel)
+          sheets (-> db :sheets)]
+      (update-in db [:sheets active-sheet
+                     :data :state :sheater/notes
+                     active-page]
+                 (fn [notes]
+                   (let [created (:created note)
+                         [idx] (->> notes
+                                      (map-indexed list)
+                                      (filter
+                                        (fn [[i n]]
+                                          (= created (:created n))))
+                                      first)]
+                     (cond
+                       (not notes) [note]
+                       (not (nil? idx)) (assoc notes idx note)
+                       :else (concat notes [note]))))))))

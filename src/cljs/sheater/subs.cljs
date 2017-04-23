@@ -1,7 +1,8 @@
 (ns ^{:author "Daniel Leong"
       :doc "Subscriptions"}
   sheater.subs
-  (:require [re-frame.core :refer [reg-sub subscribe]]))
+  (:require [clojure.set :refer [union]]
+            [re-frame.core :refer [reg-sub subscribe]]))
 
 (reg-sub :sheets-map :sheets)
 
@@ -86,7 +87,6 @@
            :pages
            (filter (comp (partial = page-id) :name))
            first))))
-
 ; static data in the active sheet
 (reg-sub
   :static
@@ -94,3 +94,30 @@
     (subscribe [:active-page page-id]))
   (fn [page [_ _ field]]
     (-> page :static field)))
+
+;;
+;; Notes
+
+(reg-sub
+  :active-notes
+  :<- [:active-page]
+  :<- [:active-state]
+  (fn [[page state] _]
+    (let [page-id (:name page)]
+      (get-in state [:sheater/notes page-id]))))
+
+(reg-sub
+  :active-note-tags
+  :<- [:active-notes]
+  (fn [notes]
+    (->> notes
+         (map :tags)
+         (apply union))))
+
+(reg-sub
+  :search-notes
+  :<- [:active-notes]
+  (fn [notes [_ query]]
+    (println "SEARCH" _ query)
+    ;; FIXME TODO
+    notes))
