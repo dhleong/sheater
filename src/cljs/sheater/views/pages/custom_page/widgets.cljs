@@ -49,6 +49,21 @@
 ;; Widgets
 ;;
 
+(defn checkbox
+  [opts]
+  {:pre [(or (:id opts)
+             (contains? opts :value))]}
+  (if-let [id (:id opts)]
+    [rc/checkbox
+     :model (->state id)
+     :on-change (partial write-state id)]
+    (let [checked? (:value opts)]
+      [:i
+       {:class (str
+                 "zmdi zmdi-check"
+                 (when-not checked?
+                   " invisible"))}])))
+
 (def input-class-spec
   {"number" {:regex #"^[0-9]*$"
              :width "4em"}

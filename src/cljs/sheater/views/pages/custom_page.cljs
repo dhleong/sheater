@@ -16,7 +16,8 @@
       (str/replace #"-" "_")))
 
 (def widget-types
-  (->> [[:input `widg/input]
+  (->> [[:checkbox `widg/checkbox]
+        [:input `widg/input]
         [:dynamic-table `widg/dynamic-table]
         [:partial-number `widg/partial-number]
         [:picker `widg/picker]
@@ -158,7 +159,8 @@
                  (:id arg))
           class (or (.-className parsed)
                     (:class arg))]
-      (when id
+      (when (or id
+                (:value arg))
         [(keyword name)
          (assoc arg
                 :id (if (string? id)
@@ -206,11 +208,6 @@
                  state
                  rc/h-box
                  (rest element))
-         :checkbox (let [v (second element)]
-                     [(if symbols? 're-com.core/checkbox rc/checkbox)
-                      :model (inflate-value-fn page state opts (:checked v))
-                      :on-change (if symbols? 'identity identity)
-                      :disabled? true])
          (if-let [auto-input (translate-auto-input page state opts element)]
            ; it was eg: :input#name
            auto-input
