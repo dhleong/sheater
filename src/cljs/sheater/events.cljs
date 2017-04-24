@@ -150,5 +150,5 @@
                                       first)]
                      (cond
                        (not notes) [note]
-                       (not (nil? idx)) (assoc notes idx note)
+                       (not (nil? idx)) (assoc (vec notes) idx note)
                        :else (concat notes [note]))))))))

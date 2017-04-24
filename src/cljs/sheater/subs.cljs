@@ -2,6 +2,7 @@
       :doc "Subscriptions"}
   sheater.subs
   (:require [clojure.set :refer [union]]
+            [clojure.string :as str]
             [re-frame.core :refer [reg-sub subscribe]]))
 
 (reg-sub :sheets-map :sheets)
@@ -118,6 +119,15 @@
   :search-notes
   :<- [:active-notes]
   (fn [notes [_ query]]
-    (println "SEARCH" _ query)
-    ;; FIXME TODO
-    notes))
+    (let [query-key (str/lower-case query)]
+      (->> notes
+           (filter
+             ; TODO be better?
+             (fn [note]
+               ; NOTE: we don't actually look explicitly
+               ; at tags, because right now the tags are
+               ; inline in the note anyway.
+               ; TODO case-insensitive includes?
+               (str/includes? (str/lower-case
+                                (:body note))
+                              query-key)))))))
