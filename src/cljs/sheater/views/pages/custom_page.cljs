@@ -152,7 +152,7 @@
       evald)))
 
 (defn destructure-auto-input
-  [[kind arg]]
+  [[kind arg & children]]
   (when (keyword? kind)
     (let [parsed (parse-tag kind)
           name (.-name parsed)
@@ -162,17 +162,20 @@
                     (:class arg))]
       (when (or id
                 (:value arg))
-        [(keyword name)
-         (assoc arg
-                :id (if (string? id)
-                      (keyword id)
-                      id)
-                :class class)]))))
+        (vec
+          (concat
+            [(keyword name)
+             (assoc arg
+                    :id (if (string? id)
+                          (keyword id)
+                          id)
+                    :class class)]
+            children))))))
 
 (defn translate-auto-input
   "`element` is guaranteed to be a vector"
   [page state {:keys [symbols?] :as opts} element]
-  (when-let [[el arg] (destructure-auto-input element)]
+  (when-let [[el arg children] (destructure-auto-input element)]
     (let [arg (if (:items arg)
                 (update arg :items
                         (partial inflate-value-fn page state opts))
@@ -184,8 +187,10 @@
       ; finally, let the right one in:
       (if-let [factory (get widget-types el)]
         (if symbols?
-          `[~(:symbol factory) ~arg]
-          [(:fn factory) arg])
+          `[~(:symbol factory) ~arg ~children]
+          (vec
+            (concat [(:fn factory) arg]
+                    children)))
         [:div "Unknown element type" el]))))
 
 ;; TODO do this just once and cache the result.
@@ -204,11 +209,9 @@
                  state
                  rc/v-box
                  (rest element))
-         :cols (wrap-with-rc
-                 page
-                 state
-                 rc/h-box
-                 (rest element))
+         :cols [widg/cols
+                (map (partial translate page state)
+                     (rest element)) ]
          (if-let [auto-input (translate-auto-input page state opts element)]
            ; it was eg: :input#name
            auto-input

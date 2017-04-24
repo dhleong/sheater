@@ -64,6 +64,18 @@
                  (when-not checked?
                    " invisible"))}])))
 
+(defn cols
+  "Render each child as a column"
+  [children]
+  (let [cols-count (count children)
+        col-width (int (/ 12 cols-count))
+        wrapper-element (keyword
+                          (str "div.col-md-" col-width))]
+    [:div.row
+     (for [[i child] (map-indexed list children)]
+       ^{:key i}
+       [wrapper-element child])]))
+
 (def input-class-spec
   {"number" {:regex #"^[0-9]*$"
              :width "4em"}
