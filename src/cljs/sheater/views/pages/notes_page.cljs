@@ -42,7 +42,6 @@
                                   :created))
                           first)]
         (when existing
-          (println "Found existing: " existing)
           (reset! note existing))))
     (fn [showing? note-created]
       [rc/modal-panel
@@ -71,7 +70,6 @@
           (fn [e]
             (.preventDefault e)
             (reset! showing? false)
-            (println "update-active-note!" @note)
             (dispatch [:update-active-note! @note]))]]]])))
 
 (defn active-tag-cloud
