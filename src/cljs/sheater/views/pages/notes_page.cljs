@@ -75,8 +75,10 @@
 (defn active-tag-cloud
   [filter-atom]
   (let [tags @(subscribe [:active-note-tags])]
-    ; TODO
-    [tag-cloud filter-atom tags]))
+    [rc/box
+     :width "40%"
+     :child
+     [tag-cloud filter-atom tags]]))
 
 (defn note-card
   [filter-atom editing-note note]
