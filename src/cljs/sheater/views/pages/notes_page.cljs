@@ -76,7 +76,6 @@
   [filter-atom]
   (let [tags @(subscribe [:active-note-tags])]
     [rc/box
-     :width "40%"
      :child
      [tag-cloud filter-atom tags]]))
 
@@ -108,7 +107,6 @@
   [editing-note filter-atom]
   (let [notes @(subscribe [:search-notes @filter-atom])]
     [rc/v-box
-     :width "60%"
      :children
      (for [n notes]
        ^{:key (:created n)}
@@ -139,7 +137,8 @@
            :on-change
            (fn [filter-text]
              (reset! current-filter filter-text))]]]
-        [rc/h-box
-         :children
-         [[search-results editing-note current-filter]
-          [active-tag-cloud current-filter]]]]])))
+        [:div.row
+         [:div.col-md-4.col-md-push-8
+          [active-tag-cloud current-filter]]
+         [:div.col-md-8.col-md-pull-4
+          [search-results editing-note current-filter]]]]])))
