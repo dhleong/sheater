@@ -9,6 +9,16 @@ body {
     font-family: monospace;
 }
 
+.cols-item {
+    &:first-child .col-separator {
+        display: none !important;
+    }
+
+    .col-separator {
+        height: 1em;
+    }
+}
+
 .selectable-set,.tag-cloud  {
     > div {
         float: left;
