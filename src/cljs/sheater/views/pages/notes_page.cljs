@@ -55,6 +55,8 @@
           :model (:body @note "")
           :placeholder "Note body"
           :change-on-blur? false
+          :rows 6
+          :width "350px"
           :on-change
           (fn [body]
             (swap! note assoc
