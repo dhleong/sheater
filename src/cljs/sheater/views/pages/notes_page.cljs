@@ -18,7 +18,7 @@
    [:div.tag-cloud
     (for [t tags]
       ^{:key t}
-      [:div.tag
+      [:div.tag-item
        [rc/hyperlink
         :label (str "#" t)
         :on-click #(reset! filter-atom t)]])])
@@ -89,9 +89,10 @@
        [rc/h-box
         :gap ".5em"
         :children
-        [[:div.card
-          (:body note)
-          [tag-cloud filter-atom (:tags note)]]
+        [[rc/v-box
+          :children
+          [(:body note)
+           [tag-cloud filter-atom (:tags note)]]]
          [rc/row-button
           :mouse-over-row? @mouse-over?
           :md-icon-name "zmdi-edit"
@@ -126,6 +127,7 @@
          :gap "1em"
          :children
          [[rc/button
+           :class "btn-raised btn-primary"
            :label "Add New Note"
            :on-click
            (fn []
