@@ -4,6 +4,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
             [re-com.core :as rc]
+            [sheater.views.header :refer [header-bar]]
             [sheater.views.pages.custom-page :as custom-page]
             [sheater.views.pages.notes-page :as notes-page]))
 
@@ -46,43 +47,22 @@
        [[rc/throbber
          :size :large]]
        ;
-       [[:nav.navbar.navbar-default
-         [rc/h-box
-          :children
-          [[:div.navbar-header
-            [:button.navbar-toggle.collapsed
-             {:type "button"
-              :data-toggle "collapse"
-              :data-target ".navbar-responsive-collapse"}
-             [:span.icon-bar]
-             [:span.icon-bar]
-             [:span.icon-bar]]
-            [:div.navbar-brand
-             {:href "#"}
-             (:name info)]]
-           [:div.navbar-collapse.collapse.navbar-responsive-collapse
-            [:ul.nav.navbar-nav.nav-tabs
-             (for [p (:pages data)]
-               (let [url (str "#/sheets/" (name (:id info)) "/" (:name p))]
-                 ^{:key (:name p)}
-                 [:li
-                  {:class (str "nav-link"
-                               (when (= (:name p) page)
-                                 " active"))}
-                  [:a
-                   {:href url
-                    :on-click (fn [e]
-                                (.preventDefault e)
-                                (dispatch [:navigate-replace!  url]))}
-                   (:name p) ]]))]
-            ;
-            [:ul.nav.navbar-nav.navbar-right
-             [rc/hyperlink-href
-              :label "Edit"
-              :href (str "#/edit/"
-                         (name (:id info))
-                         "/"
-                         page)]]]]]]
+       [[header-bar
+         {:header (:name info)
+          :tabs
+          (map
+            (fn [p]
+              {:label (:name p)
+               :active? (= (:name p) page)
+               :url (str "#/sheets/" (name (:id info)) "/" (:name p))})
+            (:pages data))
+          :buttons
+          [[rc/hyperlink-href
+            :label "Edit"
+            :href (str "#/edit/"
+                       (name (:id info))
+                       "/"
+                       page)]]}]
         [:div.container
          [render-page
          (->> data
