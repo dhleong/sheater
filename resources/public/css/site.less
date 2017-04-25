@@ -43,3 +43,21 @@ input.number, input.big-number {
 .card {
     padding: 1em;
 }
+
+.rc-dropdown {
+    // background: no-repeat bottom,50% calc(100% - 1px);
+    background-size: 0 100%,100% calc(100% - 1px);
+    border: 0;
+    -webkit-transition: background 0s ease-out;
+    transition: background 0s ease-out;
+
+    background-image: -webkit-linear-gradient(bottom,#009688 2px,rgba(0,150,136,0) 0),-webkit-linear-gradient(bottom,rgba(0,0,0,.26) 1px,transparent 0);
+    background-image: linear-gradient(0deg,#009688 2px,rgba(0,150,136,0) 0),linear-gradient(0deg,rgba(0,0,0,.26) 1px,transparent 0);
+
+    .chosen-single {
+        background: none;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+}

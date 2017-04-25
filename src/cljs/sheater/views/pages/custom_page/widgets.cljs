@@ -93,6 +93,7 @@
         regex (get-in input-class-spec [class :regex])]
     [rc/input-text
      :class class
+     :style {:padding "0px"}
      :width (or (:width opts)
                 (get-in input-class-spec [class :width]))
      :model (or (->state id) "")
