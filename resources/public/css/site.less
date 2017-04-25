@@ -1,6 +1,29 @@
 body {
 }
 
+.navbar {
+    padding-bottom: 0;
+
+    .nav-link {
+        padding: 0;
+
+        &:not(.active):hover {
+            background: none !important;
+            border: none !important;
+        }
+    }
+
+    .nav > .active > a {
+        background: none !important;
+        border: none !important;
+    }
+
+    .nav-tabs > li > a {
+        border: none;
+        border-radius: 0;
+    }
+}
+
 .invisible {
     visibility: hidden;
 }

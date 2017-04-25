@@ -111,35 +111,61 @@
        [[rc/throbber
          :size :large]]
        ;
-       [[rc/h-box
-         :gap "2em"
-         :children
-         [[rc/title
-           :label [:span "EDIT: " (:name info)]
-           :level :level3]
-          [rc/md-circle-icon-button
-           :md-icon-name "zmdi-floppy"
-           :tooltip "Save"
-           :on-click (fn []
-                       (dispatch
-                         [:save-sheet!
-                          (:id info)]))]
-          ;
-          [rc/horizontal-tabs
-           :tabs (->> data :pages
-                      (map (fn [page]
-                             {:label (:name page)
-                              :id (:name page)})))
-           :model page
-           :on-change
-           (fn [id]
-             (dispatch [:navigate-replace!
-                        (str
-                          "#/edit/"
-                          (name (:id info))
-                          "/"
-                          id)]))]]]
-        [render-page-editor (:id info) page]])]))
+       ; TODO: component:
+       [[:nav.navbar.navbar-default
+         [rc/h-box
+          :children
+         [[:div.navbar-header
+           [:button.navbar-toggle.collapsed
+            {:type "button"
+             :data-toggle "collapse"
+             :data-target ".navbar-responsive-collapse"}
+            [:span.icon-bar]
+            [:span.icon-bar]
+            [:span.icon-bar]]
+           [:div.navbar-brand
+            {:href "#"}
+            "EDIT: " (:name info)]]
+          [:div.navbar-collapse.collapse.navbar-responsive-collapse
+           [:ul.nav.navbar-nav.nav-tabs
+            (for [p (:pages data)]
+              (let [url (str "#/edit/" (name (:id info)) "/" (:name p))]
+                ^{:key (:name p)}
+                [:li
+                 {:class (str "nav-link"
+                              (when (= (:name p) page)
+                                " active"))}
+                 [:a
+                  {:href url
+                   :on-click (fn [e]
+                               (.preventDefault e)
+                               (dispatch [:navigate-replace!  url]))}
+                  (:name p) ]]))]
+           #_[rc/horizontal-tabs
+            :tabs (->> data :pages
+                       (map (fn [page]
+                              {:label (:name page)
+                               :id (:name page)})))
+            :model page
+            :on-change
+            (fn [id]
+              (dispatch [:navigate-replace!
+                         (str
+                           "#/edit/"
+                           (name (:id info))
+                           "/"
+                           id)]))]
+           ;
+           [:ul.nav.navbar-nav.navbar-right
+            [rc/md-circle-icon-button
+             :md-icon-name "zmdi-floppy"
+             :tooltip "Save"
+             :on-click (fn []
+                         (dispatch
+                           [:save-sheet!
+                            (:id info)]))]]]]]]
+        [:div.container
+         [render-page-editor (:id info) page]]])]))
 
 (defn panel
   [[id page]]

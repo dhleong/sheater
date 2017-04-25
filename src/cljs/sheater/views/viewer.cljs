@@ -46,39 +46,50 @@
        [[rc/throbber
          :size :large]]
        ;
-       [[rc/h-box
-         :gap "2em"
-         :children
-         [[rc/title
-           :label (:name info)
-           :level :level3]
-          [rc/hyperlink-href
-           :label "Edit"
-           :href (str "#/edit/"
-                      (name (:id info))
-                      "/"
-                      page)]
-          ;
-          [rc/horizontal-tabs
-           :tabs (->> data :pages
-                      (map (fn [page]
-                             {:label (:name page)
-                              :id (:name page)})))
-           :model page
-           :on-change
-           (fn [id]
-             (dispatch [:navigate-replace!
-                        (str
-                          "#/sheets/"
-                          (name (:id info))
-                          "/"
-                          id)]))]]]
-        [render-page
+       [[:nav.navbar.navbar-default
+         [rc/h-box
+          :children
+          [[:div.navbar-header
+            [:button.navbar-toggle.collapsed
+             {:type "button"
+              :data-toggle "collapse"
+              :data-target ".navbar-responsive-collapse"}
+             [:span.icon-bar]
+             [:span.icon-bar]
+             [:span.icon-bar]]
+            [:div.navbar-brand
+             {:href "#"}
+             (:name info)]]
+           [:div.navbar-collapse.collapse.navbar-responsive-collapse
+            [:ul.nav.navbar-nav.nav-tabs
+             (for [p (:pages data)]
+               (let [url (str "#/sheets/" (name (:id info)) "/" (:name p))]
+                 ^{:key (:name p)}
+                 [:li
+                  {:class (str "nav-link"
+                               (when (= (:name p) page)
+                                 " active"))}
+                  [:a
+                   {:href url
+                    :on-click (fn [e]
+                                (.preventDefault e)
+                                (dispatch [:navigate-replace!  url]))}
+                   (:name p) ]]))]
+            ;
+            [:ul.nav.navbar-nav.navbar-right
+             [rc/hyperlink-href
+              :label "Edit"
+              :href (str "#/edit/"
+                         (name (:id info))
+                         "/"
+                         page)]]]]]]
+        [:div.container
+         [render-page
          (->> data
               :pages
               (filter (comp (partial = page) :name))
               first)
-         @(subscribe [:active-state])]])]))
+         @(subscribe [:active-state])]]])]))
 
 (defn panel
   [[id page]]
