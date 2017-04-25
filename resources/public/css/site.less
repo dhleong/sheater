@@ -29,6 +29,13 @@ body {
     }
 }
 
+// remove the ugly outline on osx
+.form-control:focus {
+    outline: 0 none;
+    border-color: transparent;
+    box-shadow: none;
+}
+
 input.number, input.big-number {
     text-align: center;
 }
