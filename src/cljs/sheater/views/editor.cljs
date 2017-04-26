@@ -86,11 +86,12 @@
               :change-on-blur? false
               :on-change
               (fn [updated-page]
+                (println "changed!")
                 (try
                   (let [parsed (edn/read-string updated-page)]
                     (reset! parse-error nil)
                     (dispatch [:edit-sheet-page
-                               sheet-id page
+                               sheet-id page-id
                                parsed]))
                   (catch :default e
                     (println "Not valid edn:" updated-page e)
