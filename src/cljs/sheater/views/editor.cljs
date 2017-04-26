@@ -7,7 +7,7 @@
             [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
             [re-com.core :as rc]
-            [sheater.views.header :refer [header-bar]]
+            [sheater.views.header :refer [action-button header-bar]]
             [sheater.views.viewer :as viewer]))
 
 (defn prettify
@@ -97,8 +97,64 @@
                     (println "Not valid edn:" updated-page e)
                     (reset! parse-error e))))]]]))})))
 
+(defn import-overlay
+  [showing?]
+  (let [whole-sheet @(subscribe [:active-sheet])
+        sheet-id (:id whole-sheet)
+        sheet-data (reagent/atom (:data whole-sheet))
+        error (reagent/atom nil)
+        include-state? (reagent/atom false)]
+    (fn [showing?]
+      [rc/modal-panel
+       :backdrop-on-click #(reset! showing? false)
+       :child
+       [rc/v-box
+        :gap "1em"
+        :children
+        [(when-let [err @error]
+           [rc/alert-box
+            :id :import-error
+            :alert-type :danger
+            :body (str err)])
+         [rc/input-textarea
+          :model (prettify
+                   (if @include-state?
+                     @sheet-data
+                     (dissoc @sheet-data :state)))
+          :rows 16
+          :width "550px"
+          :on-change
+          (fn [data]
+            (try
+              (when-let [new-data (edn/read-string data)]
+                (reset! error nil)
+                (if @include-state?
+                  (reset! sheet-data new-data)
+                  (swap! sheet-data
+                         (fn [old-sheet]
+                           (assoc new-data
+                                  :state (:state old-sheet))))))
+              (catch :default e
+                ; TODO notify
+                (reset! error e)
+                (js/console.warn "Error parsing import text" e))))]
+         [rc/checkbox
+          :label "Include user state (Careful! You could lose your state!)"
+          :model include-state?
+          :on-change (partial reset! include-state?)]
+         [rc/h-box
+          :justify :center
+          :children
+          [[rc/button
+            :class "btn-raised btn-primary"
+            :label "Import"
+            :on-click
+            (fn []
+              (println "EDIT: " sheet-id @sheet-data)
+              (dispatch [:edit-sheet sheet-id @sheet-data]))]]]]]])))
+
 (defn render-editor
-  [page info]
+  [page info showing-import?]
   (let [data (:data info)
         page (or page
                  (when data
@@ -113,7 +169,6 @@
        [[rc/throbber
          :size :large]]
        ;
-       ; TODO: component:
        [[header-bar
          {:header (str "EDIT: " (:name info))
           :tabs
@@ -124,19 +179,25 @@
                :label (:name p)})
             (:pages data))
           :buttons
-          [[rc/md-circle-icon-button
-            :md-icon-name "zmdi-floppy"
-            :tooltip "Save"
+          [[action-button
+            :label "Import"
+            :on-click #(reset! showing-import? true)]
+           [action-button
+            :label "Save"
             :on-click (fn []
                         (dispatch
                           [:save-sheet!
                            (:id info)]))]]}]
+        (when @showing-import?
+          [import-overlay showing-import?])
         [:div.container
          [render-page-editor (:id info) page]]])]))
 
 (defn panel
   [[id page]]
-  (let [info @(subscribe [:sheet id])]
-    (if info
-      [render-editor page info]
-      [four-oh-four])))
+  (let [showing-import? (reagent/atom false)]
+    (fn [[id page]]
+      (let [info @(subscribe [:sheet id])]
+        (if info
+          [render-editor page info showing-import?]
+          [four-oh-four])))))

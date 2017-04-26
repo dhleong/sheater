@@ -17,8 +17,10 @@
 
 (def widget-types
   (->> [[:checkbox `widg/checkbox]
+        [:currency `widg/currency]
         [:input `widg/input]
         [:input-calc `widg/input-calc]
+        [:inventory `widg/inventory]
         [:dynamic-table `widg/dynamic-table]
         [:partial-number `widg/partial-number]
         [:picker `widg/picker]

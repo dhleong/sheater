@@ -7,6 +7,16 @@
             [re-frame.core :refer [subscribe dispatch]]))
 
 ;;
+;; Constants
+;;
+
+(def input-class-spec
+  {"number" {:regex #"^[0-9]*$"
+             :width "4em"}
+   "big-number" {:regex #"^[0-9]*$"
+                 :width "7em"}})
+
+;;
 ;; Utils
 ;;
 
@@ -78,11 +88,44 @@
         [:div.hidden-md.hidden-lg.col-separator]
         child])]))
 
-(def input-class-spec
-  {"number" {:regex #"^[0-9]*$"
-             :width "4em"}
-   "big-number" {:regex #"^[0-9]*$"
-                 :width "7em"}})
+(defn currency
+  "Renders a nice table of currency values and
+   does math for you."
+  [opts]
+  {:pre [(:id opts)
+         (:kinds opts)]}
+  ; TODO fancy math
+  (let [id (:id opts)
+        kinds (:kinds opts)
+        state (->state id)
+        number-width (get-in input-class-spec ["big-number" :width])
+        number-regex (get-in input-class-spec ["big-number" :regex])]
+    [:table
+     [:tbody
+      (vec
+        (cons
+          :tr
+          (map
+            (fn [kind]
+              [:th (:label kind)])
+            kinds)))
+      (vec
+        (cons
+          :tr
+          (map
+            (fn [kind]
+              [:td
+               [rc/input-text
+                :class "number"
+                :style {:padding "0px"}
+                :width number-width
+                :model (str (or (get state (:id kind)) "0"))
+                :on-change (fn [amount]
+                             (write-state
+                               id
+                               (assoc state (:id kind) (int amount))))
+                :validation-regex number-regex]])
+            kinds)))]]))
 
 (defn input
   "Basic text input widget"
@@ -154,6 +197,15 @@
                                             amount)))))))
                :validation-regex #"[-+]?[0-9]*"]]]])))
 
+(declare dynamic-table)
+(defn inventory
+  "A container for items"
+  [opts]
+  {:pre [(:id opts)
+         (:label opts)]}
+  ; TODO support dragging between inventory containers
+  [dynamic-table {:id (:id opts)
+                  :cols [(:label opts)]}])
 
 (defn picker
   [opts]

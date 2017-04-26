@@ -10,6 +10,7 @@
   {:pre [(:tabs opts)]}
   [:nav.navbar.navbar-default
    [rc/h-box
+    :width "100%"
     :children
     [[:div.navbar-header
       [:div.navbar-brand
@@ -44,3 +45,14 @@
               (fn [b]
                 [:li b])
               buttons))))]]]])
+
+(defn action-button
+  "Drop-in replacement for rc/hyperlink for use in the header-bar"
+  [& {:keys [on-click label]}]
+  [:a ; can't use rc/hyperlink here because it breaks styles :/
+   {:href "#"
+    :on-click
+    (fn [e]
+      (.preventDefault e)
+      (on-click))}
+   label])

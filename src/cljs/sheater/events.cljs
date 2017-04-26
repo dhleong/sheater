@@ -59,6 +59,14 @@
     (assoc sheets (:id sheet) sheet)))
 
 (reg-event-db
+  :edit-sheet
+  [(path :sheets) trim-v]
+  (fn [sheets [sheet-id new-sheet]]
+    (assoc-in sheets
+              [sheet-id :data]
+              new-sheet)))
+
+(reg-event-db
   :edit-sheet-page
   [(path :sheets) trim-v]
   (fn [sheets [sheet-id page-id new-page]]
