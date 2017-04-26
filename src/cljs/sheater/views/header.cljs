@@ -9,42 +9,40 @@
   [opts]
   {:pre [(:tabs opts)]}
   [:nav.navbar.navbar-default
-   [rc/h-box
-    :width "100%"
-    :children
-    [[:div.navbar-header
-      [:div.navbar-brand
-       (:header opts)]]
-     [:ul.nav.navbar-nav.nav-tabs
-      (for [t (:tabs opts)]
-        ^{:key (:label t)}
-        [:li
-         {:class (str "nav-link"
-                      (when (:active? t)
-                        " active"))}
-         [:a
-          {:href (:url t)
-           :on-click (fn [e]
-                       (.preventDefault e)
-                       (dispatch [:navigate-replace! (:url t)]))}
-          (:label t)]])]
-     [:button.navbar-toggle.collapsed
-      {:type "button"
-       :data-toggle "collapse"
-       :data-target ".navbar-responsive-collapse"}
-      [:span.icon-bar]
-      [:span.icon-bar]
-      [:span.icon-bar]]
-     [:div.navbar-collapse.collapse.navbar-responsive-collapse
-      ;
-      (when-let [buttons (:buttons opts)]
-        (vec
-          (cons
-            :ul.nav.navbar-nav.navbar-right
-            (map
-              (fn [b]
-                [:li b])
-              buttons))))]]]])
+   [:div.container
+    [:div.navbar-header
+     [:div.navbar-brand
+      (:header opts)]]
+    [:ul.nav.navbar-nav.nav-tabs
+     (for [t (:tabs opts)]
+       ^{:key (:label t)}
+       [:li
+        {:class (str "nav-link"
+                     (when (:active? t)
+                       " active"))}
+        [:a
+         {:href (:url t)
+          :on-click (fn [e]
+                      (.preventDefault e)
+                      (dispatch [:navigate-replace! (:url t)]))}
+         (:label t)]])]
+    [:button.navbar-toggle.collapsed
+     {:type "button"
+      :data-toggle "collapse"
+      :data-target ".navbar-responsive-collapse"}
+     [rc/md-icon-button
+      :md-icon-name "zmdi-more-vert"
+      :on-click identity]]
+    [:div.navbar-collapse.collapse.navbar-responsive-collapse
+     ;
+     (when-let [buttons (:buttons opts)]
+       (vec
+         (cons
+           :ul.nav.navbar-nav.navbar-right
+           (map
+             (fn [b]
+               [:li b])
+             buttons))))]]])
 
 (defn action-button
   "Drop-in replacement for rc/hyperlink for use in the header-bar"

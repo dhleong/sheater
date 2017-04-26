@@ -12,6 +12,7 @@
 (reg-fx
   :navigate!
   (fn [url]
+    (println "navigate:" url)
     (set! js/window.location url)))
 
 (reg-fx

@@ -4,16 +4,42 @@ body {
 .navbar {
     padding-bottom: 0;
 
+    &>.container {
+        padding-right: 0;
+    }
+
+    .navbar-header {
+        float: left;
+    }
+
     .navbar-brand {
         // hacks:
         position: relative;
-        top: 50%;
-        transform: translateY(-35%);
+        // top: 50%;
+        // transform: translateY(-35%);
+        transform: translateY(25%);
     }
 
-    .navbar-collapse {
-        align-self: flex-end;
+    .navbar-collapse, .navbar-toggle {
+        // align-self: flex-end;
         margin-left: auto;
+        float: right;
+    }
+
+    .navbar-nav {
+        float: left;
+    }
+
+    // .collapse.in {
+    //     background: white;
+    //     position: absolute;
+    //     right: 2em;
+    //     top: 1em;
+    // }
+
+    button.navbar-toggle {
+        border: none;
+        padding-right: 0;
     }
 
     .nav-link {

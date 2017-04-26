@@ -48,7 +48,8 @@
          :size :large]]
        ;
        [[header-bar
-         {:header (:name info)
+         {:header [:span.navbar-collapse.collapse
+                   (:name info)]
           :tabs
           (map
             (fn [p]

@@ -170,7 +170,17 @@
          :size :large]]
        ;
        [[header-bar
-         {:header (str "EDIT: " (:name info))
+         {:header
+          [rc/hyperlink
+           :label [:span
+                   [:i.zmdi.zmdi-arrow-left]
+                   [:span.navbar-collapse.collapse
+                    (str " EDIT: " (:name info))]]
+           :on-click (fn [e]
+                       (.preventDefault e)
+                       (println "heyyy")
+                       (dispatch [:navigate!
+                                  (str "#/sheets/" (name (:id info)) "/" page)])) ]
           :tabs
           (map
             (fn [p]
