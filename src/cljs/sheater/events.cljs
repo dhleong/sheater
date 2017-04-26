@@ -80,7 +80,8 @@
   (fn [db [k v]]
     (let [sheet-id (-> db
                        :active-panel
-                       second)]
+                       second
+                       first)]
       (println "Edit" sheet-id k v)
       (update-in db
                  [:sheets sheet-id :data :state]
