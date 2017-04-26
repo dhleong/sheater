@@ -247,12 +247,16 @@
                             (constantly "")
                             columns))
         new-row-value (reagent/atom empty-new-row)
+        mouse-over? (reagent/atom false)
         desc-col (.indexOf columns :desc)]
     (fn [opts]
       (let [items (->state id)
             auto-value (:value opts)
-            auto-value-count (count auto-value)]
+            auto-value-count (count auto-value)
+            is-mouse-over? @mouse-over?]
         [:table
+         {:on-mouse-over #(reset! mouse-over? true)
+          :on-mouse-out #(reset! mouse-over? false)}
          [:tbody
 
           ;; Render items:
@@ -282,7 +286,7 @@
                       (when (>= i auto-value-count)
                         [rc/row-button
                          :md-icon-name "zmdi-delete"
-                         :mouse-over-row? true
+                         :mouse-over-row? is-mouse-over?
                          :on-click
                          (fn [row]
                            (when-let [idx (if-let [i (.indexOf items item)]
