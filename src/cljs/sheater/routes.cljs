@@ -21,9 +21,6 @@
   (defroute "/" []
     (re-frame/dispatch [:set-active-panel :home-panel]))
 
-  (defroute "/about" []
-    (re-frame/dispatch [:set-active-panel :about-panel]))
-
   (defroute "/provider/:id" [id]
     (re-frame/dispatch [:set-active-panel
                         :provider-panel (keyword id)]))

@@ -1,68 +1,26 @@
-(ns sheater.views
-    (:require [re-frame.core :refer [subscribe dispatch]]
-              [re-com.core :as rc]
-              [sheater.provider :refer [providers]]
-              [sheater.views.create :as create]
-              [sheater.views.editor :as editor]
-              [sheater.views.sheets :as sheets]
-              [sheater.views.viewer :as viewer]))
-
-;; home
-
-(defn home-title []
-  [rc/title
-   :label "sheater"
-   :level :level1])
-
-(defn provider-picker []
-  [:ul
-   (for [info (vals providers)]
-     ^{:key (:id info)}
-     [:li
-      [rc/hyperlink-href
-       :label (:name info)
-       :href (str "#/provider/" (name (:id info)))]])])
-
-(defn home-panel []
-  [rc/v-box
-   :gap "1em"
-   :children [[home-title]
-              [provider-picker]]])
-
-
-;; about
-
-(defn about-title []
-  [rc/title
-   :label "This is the About Page."
-   :level :level1])
-
-(defn link-to-home-page []
-  [rc/hyperlink-href
-   :label "go to Home Page"
-   :href "#/"])
-
-(defn about-panel []
-  [rc/v-box
-   :gap "1em"
-   :children [[about-title] [link-to-home-page]]])
-
+(ns ^{:author "Daniel Leong"
+      :doc "Views switcher"}
+  sheater.views
+  (:require [re-frame.core :refer [subscribe dispatch]]
+            [re-com.core :as rc]
+            [sheater.views.create :as create]
+            [sheater.views.editor :as editor]
+            [sheater.views.home :as home]
+            [sheater.views.provider :as provider]
+            [sheater.views.sheets :as sheets]
+            [sheater.views.viewer :as viewer]))
 
 ;; main
 
 (defn- panels [panel-name & [args]]
   (case panel-name
-    :home-panel [home-panel]
-    :about-panel [about-panel]
-    :provider-panel [(-> providers args :panel)]
+    :home-panel [home/panel]
+    :provider-panel [provider/panel args]
     :sheets [sheets/panel]
     :sheet/create [create/panel]
     :viewer [viewer/panel args]
     :editor [editor/panel args]
     [:div "Oops! Unknown panel:" panel-name]))
-
-(defn show-panel [panel-name]
-  [panels panel-name])
 
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])]

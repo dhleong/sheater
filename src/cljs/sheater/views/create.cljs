@@ -5,12 +5,13 @@
             [re-frame.core :refer [subscribe dispatch]]
             [re-com.core :as rc]
             [sheater.provider :refer [providers]]
-            [sheater.provider.proto :refer [create-sheet]]))
+            [sheater.provider.proto :refer [create-sheet]]
+            [sheater.views.header :refer [header-bar]]))
 
-(defn title []
-  [rc/title
-   :label "New Sheet"
-   :level :level1])
+(defn title
+  []
+  [header-bar
+   {:header "New Sheet"}])
 
 (defn panel
   []
@@ -40,37 +41,38 @@
     (fn []
       [rc/v-box
        :height "100%"
-       :gap "1em"
        :children
        [[title]
-        [:form
-         {:on-submit (fn [e] (.preventDefault e))}
-         [rc/v-box
-          :gap ".5em"
-          :children
-          [[rc/label :label "Storage Provider"]
-           ;
-           [rc/single-dropdown
-            :choices (vals providers)
-            :model default-provider
-            :label-fn :name
-            :placeholder "Storage Provider"
-            :width "200px"
-            :on-change (partial set-key! :provider)]
-           [rc/gap :size "1em"]
-           ;
-           [rc/label :label "Sheet Name"]
-           [rc/input-text
-            :placeholder "Sheet Name"
-            :model ""
-            :on-change (partial set-key! :name)
-            :change-on-blur? false
-            :validation-regex #"([a-zA-Z0-9_-]+)(.*)"]
-           ;
-           [rc/gap :size "1em"]
-           [rc/button
-            :label "Create"
-            :on-click submit!]]]]
+        [:div.container
+         [:form
+          {:on-submit (fn [e] (.preventDefault e))}
+          [rc/v-box
+           :gap ".5em"
+           :children
+           [[rc/label :label "Storage Provider"]
+            ;
+            [rc/single-dropdown
+             :choices (vals providers)
+             :model default-provider
+             :label-fn :name
+             :placeholder "Storage Provider"
+             :width "200px"
+             :on-change (partial set-key! :provider)]
+            [rc/gap :size "1em"]
+            ;
+            [rc/label :label "Sheet Name"]
+            [rc/input-text
+             :placeholder "Sheet Name"
+             :model ""
+             :on-change (partial set-key! :name)
+             :change-on-blur? false
+             :validation-regex #"([a-zA-Z0-9_-]+)(.*)"]
+            ;
+            [rc/gap :size "1em"]
+            [rc/button
+             :class "btn-raised btn-primary"
+             :label "Create"
+             :on-click submit!]]]]]
         (when @creating?
           [rc/modal-panel
            :child

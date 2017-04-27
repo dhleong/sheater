@@ -7,25 +7,25 @@
 
 (defn header-bar
   [opts]
-  {:pre [(:tabs opts)]}
   [:nav.navbar.navbar-default
    [:div.container
     [:div.navbar-header
      [:div.navbar-brand
       (:header opts)]]
-    [:ul.nav.navbar-nav.nav-tabs
-     (for [t (:tabs opts)]
-       ^{:key (:label t)}
-       [:li
-        {:class (str "nav-link"
-                     (when (:active? t)
-                       " active"))}
-        [:a
-         {:href (:url t)
-          :on-click (fn [e]
-                      (.preventDefault e)
-                      (dispatch [:navigate-replace! (:url t)]))}
-         (:label t)]])]
+    (when-let [tabs (:tabs opts)]
+      [:ul.nav.navbar-nav.nav-tabs
+       (for [t tabs]
+         ^{:key (:label t)}
+         [:li
+          {:class (str "nav-link"
+                       (when (:active? t)
+                         " active"))}
+          [:a
+           {:href (:url t)
+            :on-click (fn [e]
+                        (.preventDefault e)
+                        (dispatch [:navigate-replace! (:url t)]))}
+           (:label t)]])])
     [:button.navbar-toggle.collapsed
      {:type "button"
       :data-toggle "collapse"

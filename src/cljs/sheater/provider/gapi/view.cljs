@@ -16,6 +16,7 @@
   [:div "Connected!"
    [:div
     [rc/button
+     :class "btn-raised btn-warning"
      :label "Disconnect Google Account"
      :on-click signout!]]])
 
@@ -25,10 +26,7 @@
     [rc/v-box
      :gap "1em"
      :children
-     [[rc/title
-       :label "Google Drive config"
-       :level :level1]
-      [rc/hyperlink-href
+     [[rc/hyperlink-href
        :label "Back to Sheets List"
        :href "#/sheets"]
       (if (:ready? gapi-info)
