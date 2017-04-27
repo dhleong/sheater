@@ -190,13 +190,19 @@
        :mimeType "application/json"
        :parents ["appDataFolder"]}
       (str
-        {:name (:name info)
-         ; TODO:
-         :pages
-         [{:name "Main"
-           :spec []}
-          {:name "Notes"
-           :type :notes}]})
+        (if-let [template (:template info)]
+          ; normal case; create using the template
+          (assoc template
+                 :name (:name info))
+          ; shouldn't happen anymore; create an empty sheet
+          (do
+            (js/console.warn "No template data provided...")
+            {:name (:name info)
+             :pages
+             [{:name "Main"
+               :spec [:div "Coming soon!"]}
+              {:name "Notes"
+               :type :notes}]})))
       (fn [response]
         (println "CREATED:" response)
         (let [id (-> response

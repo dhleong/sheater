@@ -1,0 +1,269 @@
+{:static
+ {:abilities
+  [{:id :acc, :label "Accuracy"}
+   {:id :com, :label "Communication"}
+   {:id :con, :label "Constitution"}
+   {:id :dex, :label "Dexterity"}
+   {:id :fgt, :label "Fighting"}
+   {:id :int, :label "Intelligence"}
+   {:id :per, :label "Perception"}
+   {:id :str, :label "Strength"}
+   {:id :wil, :label "Willpower"}],
+  :races
+  {"Dwarf"    {:speed 8}
+   "Elf"      {:speed 12}
+   "Gnome"    {:speed 8}
+   "Halfling" {:speed 8}
+   "Human"    {:speed 10}
+   "Orc"      {:speed 10}}
+  :backgrounds
+  {"Outsider" ["Criminal" "Exile" "Hermit" "Pirate" "Radical" "Wanderer"]
+   "Lower Class" ["Artist" "Laborer" "Performer" "Sailor" "Soldier" "Tradesperson"]
+   "Middle Class" ["Guilder" "Initiate" "Innkeeper" "Merchant" "Scribe" "Student"]
+   "Upper Class" ["Apprentice" "Dilettante" "Noble" "Official" "Scholar" "Squire"]}
+  :classes
+  {"Mage"
+   {:primaries
+    #{:acc
+      :int
+      :per
+      :wil}}
+   "Rogue"
+   {:primaries
+    #{:acc
+      :com
+      :dex
+      :per}}
+   "Warrior"
+   {:primaries
+    #{:con
+      :dex
+      :fgt
+      :str}}}
+  :class-powers
+  [{:label "Pinpoint Attack"
+    :desc "Once per round, you can add 1d6 damage to successful attack if your Dexterity is greater than your opponent's."}]
+  :race-powers
+  [{:label "Dark Sight"
+    :desc "You can see up to 20 yards in darkness without a light source."}
+   {:label "Language: Common"}
+   {:label "Language: Elvish"}]
+  :focuses
+  {:com
+   [{:label "Persuasion"
+     :desc "Convincing others to agree with you."}]
+   :int
+   [{:label "Natural Lore"
+     :desc "Knowing natural flora and fauna."}
+    {:label "Healing"
+     :desc "Aiding the wounded and sick."}]
+   :per
+   [{:label "Empathy"
+     :desc "Discerning the feelings and emotions of others."}]}
+  :talents
+  [{:label "Chirurgy (Novice)"
+    :desc "You have trained in the art of chirurgy and your aid is swift and sure. Heal is a minor action for you."}
+   {:label "Contacts (Novice)"
+    :desc "You can attempt to make a contact out of a NPC with a successful Communication (Persuasion) test. The GM will set the target number based on the likelihood of you knowing the NPC or having mutual friends. The more distant the NPC’s homeland or social class from yours, the more dif cult the test will be. A contact will be friendly to you, but won’t go out of the way to help you without additional motivation. You can’t make a contact out of a NPC who already dislikes you or is an enemy."}
+   {:label "Healing Arcana (Novice)"
+    :desc "You learn the spells Healing Touch and Revival"}]
+  :spells
+  [{:name "Healing Touch"
+    :time "Maj"
+    :cost "1-3mp"
+    :tn 10
+    :desc "Your touch seals wounds and restores vigor to one wounded target. You can choose to spend up to 3 MPs when you cast the spell. For each MP spent, the target gets back 1d6 Health. You can cast this on yourself."
+    :req :healing-arcana-novice}
+   {:name "Revival"
+    :time "Maj"
+    :cost "5mp"
+    :tn 14
+    :desc "Your touch helps restore the grievously wounded or fallen. A dying character adjacent to you immediately regains 10 + their Constitution + your Willpower in Health. Since dying characters cannot take actions, you cannot cast this spell on yourself."
+    :req :healing-arcana-novice}]
+  :melee-weapons
+  [["Two-handed Axe" "Fgt" "3d6"]
+   ["Fist" "Acc" "1d3"]]
+  :ranged-weapons
+  [["Arcane Blast" "Acc" "1d6 + Wil" "16" "16" "N/A"]]}
+ :pages
+ [{:name
+   "Main",
+   :spec
+   [:rows
+    [:cols
+     [:table
+      [:tbody
+       [:tr
+        [:td
+         "Name"]
+        [:td
+         [:input#name]]]
+       [:tr
+        [:td
+         "Race"]
+        [:td
+         [:picker#race
+          {:items (keys :$races)}]]]
+       [:tr
+        [:td
+         "Social Class"]
+        [:td
+         [:picker#social-class
+          {:items (keys :$backgrounds)}]]]
+       [:tr
+        [:td
+         "Background"]
+        [:td
+         [:picker#background
+          {:items (get :$backgrounds :#social-class)}]]]]]
+     [:rows
+      [:table
+       [:tbody
+        [:tr
+         [:th
+          "Class"]
+         [:th
+          "Level"]
+         [:th
+          "Experience"]]
+        [:tr
+         [:td
+          [:picker#class
+           {:items (keys :$classes)}]]
+         [:td
+          [:input#level.number]]
+         [:td
+          [:input-calc#experience.big-number]]]]]
+      [:table
+       [:tbody
+        [:tr
+         [:th
+          "Speed"]
+         [:th
+          "Defence"]
+         [:th
+          "Armor"]
+         [:th
+          "Penalty"]
+         [:th
+          "Health"]]
+        [:tr
+         [:td (- (+ (get-in :$races [:#race :speed]) :#dex) :#armor-penalty)]
+         [:td (+ 10 :#dex)]
+         [:td
+          [:input#armor.number]]
+         [:td
+          [:input#armor-penalty.number]]
+         [:td
+          [:partial-number#hp]]]]]
+      [:table
+       [:tbody
+        [:tr
+         [:th
+          "Move (Yds)"]
+         [:th
+          "Charge (Yds)"]
+         [:th
+          "Run (Yds)"]]
+        [:tr
+         [:td
+          (- (+ (get-in :$races [:#race :speed]) :#dex) :#armor-penalty)]
+         [:td
+          (/ (- (+ (get-in :$races [:#race :speed]) :#dex) :#armor-penalty) 2)]
+         [:td
+          (* (- (+ (get-in :$races [:#race :speed]) :#dex) :#armor-penalty) 2)]]]]]]
+    [:hr]
+    [:cols
+     [:table
+      [:tbody
+       [:tr
+        [:th
+         "P?"]
+        [:th
+         "Ability"]
+        [:th
+         "Focuses"]
+        [:th
+         "Rating"]]
+       (for
+         [a
+          :$abilities]
+         [:tr
+          [:td
+           [:checkbox
+            {:value
+             (contains?
+               (get-in
+                 :$classes
+                 [:#class
+                  :primaries])
+               (:id a))}]]
+          [:td
+           (:label a)]
+          [:td
+           [:selectable-set
+            {:id (keyword (str (name (:id a)) "-focuses"))
+             :items (get :$focuses (:id a))}]]
+          [:td
+           [:input.number {:id (:id a)}]]])]]
+     [:table
+      [:tbody
+       [:tr
+        [:th "Powers and Talents"]]
+       [:tr
+        [:td
+         [:selectable-list#powers
+          {:placeholder "Add a new power"
+           :items (concat :$talents :$race-powers :$class-powers)}]]]]]]
+    [:hr]
+    [:cols
+     [:dynamic-table#melee-weapons
+      {:cols ["Melee Weapon" "ATK Roll" "DMG Roll"]
+       :items :$melee-weapons}]
+     [:dynamic-table#ranged-weapons
+      {:cols ["Ranged Weapon" "ATK Roll" "DMG Roll"
+              "Short Range" "Long Range"
+              "Reload Time"]
+       :items :$ranged-weapons}]]
+    [:hr]
+    [:cols
+     [:table
+      [:tbody
+       [:tr
+        [:th "Spellpower"]
+        [:th "MP"]]
+       [:tr
+        [:td (str (+ 10 :#wil) " + Focus")]
+        [:td
+         [:partial-number#mp]]]]]
+     [:dynamic-table#spells
+      {:cols ["Spell Name" "Cast Time" "MP Cost" "TN" :desc]
+       :value (let [known :#powers]
+                (->> :$spells
+                     (filter (fn [sp]
+                               (contains? known
+                                          (:req sp))))
+                     (map (fn [sp]
+                            [(:name sp)
+                             (:time sp)
+                             (:cost sp)
+                             (:tn sp)
+                             (:desc sp)]))))}]]]}
+  {:name "EQ"
+   :spec
+   [:cols
+    [:currency#currency
+     {:kinds
+      [{:label "Gold"
+        :id :gold
+        :value [10 :silver]}
+       {:label "Silver"
+        :id :silver
+        :value [10 :copper]}
+       {:label "Copper"
+        :id :copper}]}]
+    [:inventory#carried
+     {:label "Carried"}]]}
+  {:name "Notes"
+   :type :notes}]}
+

@@ -209,7 +209,6 @@
                     (str " EDIT: " (:name info))]]
            :on-click (fn [e]
                        (.preventDefault e)
-                       (println "heyyy")
                        (dispatch [:navigate!
                                   (str "#/sheets/" (name (:id info)) "/" page)])) ]
           :tabs

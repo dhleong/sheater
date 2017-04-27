@@ -5,7 +5,8 @@
                  [re-frame "0.9.2"]
                  [org.clojure/core.async "0.2.391"]
                  [re-com "2.0.0"]
-                 [secretary "1.2.3"]]
+                 [secretary "1.2.3"]
+                 [cljs-ajax "0.5.9"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]]
