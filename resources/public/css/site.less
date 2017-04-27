@@ -1,4 +1,7 @@
-body {
+/* mixin-type classes */
+
+.clickable {
+    cursor: pointer;
 }
 
 .navbar {
@@ -120,5 +123,15 @@ input.number, input.big-number {
         border: none;
         border-radius: 0;
         box-shadow: none;
+    }
+}
+
+.container {
+    .sheets {
+        padding: 0 10%;
+
+        .table {
+            min-width: 250px !important;
+        }
     }
 }
