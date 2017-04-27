@@ -14,6 +14,9 @@
    {:header "sheater"
     :buttons
     [[rc/hyperlink-href
+      :label "Configure"
+      :href "#/"]
+     [rc/hyperlink-href
       :label "New Sheet"
       :href "#/sheet/create"]]}])
 
