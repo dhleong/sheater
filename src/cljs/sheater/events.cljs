@@ -67,6 +67,14 @@
               new-sheet)))
 
 (reg-event-db
+  :edit-sheet-static
+  [(path :sheets) trim-v]
+  (fn [sheets [sheet-id new-static]]
+    (assoc-in sheets
+              [sheet-id :data :static]
+              new-static)))
+
+(reg-event-db
   :edit-sheet-page
   [(path :sheets) trim-v]
   (fn [sheets [sheet-id page-id new-page]]

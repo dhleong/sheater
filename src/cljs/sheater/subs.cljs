@@ -62,6 +62,15 @@
   (fn [sheet]
     (:data sheet)))
 
+; :static of the :active-sheet
+(reg-sub
+  :active-static
+  :<- [:active-data]
+  (fn [data [_ & ks]]
+    (or (get-in data (cons :static ks))
+        (when-not ks
+          {}))))
+
 ; :state of the :active-sheet
 (reg-sub
   :active-state
@@ -88,13 +97,6 @@
            :pages
            (filter (comp (partial = page-id) :name))
            first))))
-; static data in the active sheet
-(reg-sub
-  :static
-  (fn [[_ page-id _] _]
-    (subscribe [:active-page page-id]))
-  (fn [page [_ _ field]]
-    (-> page :static field)))
 
 ;;
 ;; Notes

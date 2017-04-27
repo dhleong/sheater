@@ -89,9 +89,11 @@
   (let [n (name kw)]
     (case (first n)
       \$ (let [static-key (keyword (subs n 1))]
-           `(deref (subscribe [:static
-                               ~(:name page)
-                               ~static-key])))
+           ; just get from :active-static so they all share
+           ; a single subscription
+           `(get
+              (deref (subscribe [:active-static]))
+              ~static-key))
       \# (let [data-key (keyword (subs n 1))]
            (get state data-key))
       ; normal keyword

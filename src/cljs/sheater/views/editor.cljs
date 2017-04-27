@@ -97,6 +97,37 @@
                     (println "Not valid edn:" updated-page e)
                     (reset! parse-error e))))]]]))})))
 
+(defn render-static-editor
+  [sheet-id]
+  (let [static-data (subscribe [:active-static])
+        parse-error (reagent/atom nil)]
+    (fn [sheet-id]
+      [rc/v-box
+       :children
+       [(when-let [e @parse-error]
+          [rc/alert-box
+           :id "parse-error-box"
+           :alert-type :danger
+           :body (str e)])
+        [rc/input-textarea
+         :model (prettify @static-data)
+         :class "editor"
+         :width "50%"
+         :rows 20
+         :change-on-blur? false
+         :on-change
+         (fn [updated-static]
+           (println "changed!")
+           (try
+             (let [parsed (edn/read-string updated-static)]
+               (reset! parse-error nil)
+               (dispatch [:edit-sheet-static
+                          sheet-id
+                          parsed]))
+             (catch :default e
+               (println "Not valid edn:" updated-static e)
+               (reset! parse-error e))))]]])))
+
 (defn import-overlay
   [showing?]
   (let [whole-sheet @(subscribe [:active-sheet])
@@ -182,12 +213,16 @@
                        (dispatch [:navigate!
                                   (str "#/sheets/" (name (:id info)) "/" page)])) ]
           :tabs
-          (map
-            (fn [p]
-              {:url (str "#/edit/" (name (:id info)) "/" (:name p))
-               :active? (= (:name p) page)
-               :label (:name p)})
-            (:pages data))
+          (cons
+            {:url (str "#/edit/" (name (:id info)) "/$static")
+             :active? (= "$static" page)
+             :label "Static Data"}
+            (map
+              (fn [p]
+                {:url (str "#/edit/" (name (:id info)) "/" (:name p))
+                 :active? (= (:name p) page)
+                 :label (:name p)})
+              (:pages data)))
           :buttons
           [[action-button
             :label "Import"
@@ -201,7 +236,9 @@
         (when @showing-import?
           [import-overlay showing-import?])
         [:div.container
-         [render-page-editor (:id info) page]]])]))
+         (if (= "$static" page)
+           [render-static-editor (:id info)]
+           [render-page-editor (:id info) page])]])]))
 
 (defn panel
   [[id page]]
