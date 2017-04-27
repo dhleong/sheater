@@ -11,7 +11,20 @@
    [:div.container
     [:div.navbar-header
      [:div.navbar-brand
-      (:header opts)]]
+      (let [header (:header opts)
+            up-url (:<-up-to opts)]
+        (if up-url
+          ; fancy case:
+          [rc/hyperlink
+           :label [:span
+                   [:i.zmdi.zmdi-arrow-left]
+                   [:span.navbar-collapse.collapse
+                    header]]
+           :on-click (fn [e]
+                       (.preventDefault e)
+                       (dispatch [:navigate! up-url]))]
+          ; simple case:
+          header))]]
     (when-let [tabs (:tabs opts)]
       [:ul.nav.navbar-nav.nav-tabs
        (for [t tabs]

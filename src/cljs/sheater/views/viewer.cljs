@@ -50,6 +50,7 @@
        [[header-bar
          {:header [:span.navbar-collapse.collapse
                    (:name info)]
+          :<-up-to "#/sheets"
           :tabs
           (map
             (fn [p]

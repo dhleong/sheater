@@ -201,16 +201,8 @@
          :size :large]]
        ;
        [[header-bar
-         {:header
-          [rc/hyperlink
-           :label [:span
-                   [:i.zmdi.zmdi-arrow-left]
-                   [:span.navbar-collapse.collapse
-                    (str " EDIT: " (:name info))]]
-           :on-click (fn [e]
-                       (.preventDefault e)
-                       (dispatch [:navigate!
-                                  (str "#/sheets/" (name (:id info)) "/" page)])) ]
+         {:header (str " EDIT: " (:name info))
+          :<-up-to (str "#/sheets/" (name (:id info)) "/" page)
           :tabs
           (cons
             {:url (str "#/edit/" (name (:id info)) "/$static")

@@ -106,6 +106,8 @@
          (= "$static" (:name config))
          "\"$static\" is not a valid sheet name")
 
+  ; TODO make sure there's no sheet with this name already
+
   ; all checks passed; erase errors and return the config unmolested
   (reset! errors-atom {})
   (println "All validate checks passed!")
