@@ -59,7 +59,7 @@
 ;; Widgets
 ;;
 
-(defn checkbox
+(defn ^:export checkbox
   [opts]
   {:pre [(or (:id opts)
              (contains? opts :value))]}
@@ -74,7 +74,7 @@
                  (when-not checked?
                    " invisible"))}])))
 
-(defn cols
+(defn ^:export cols
   "Render each child as a column"
   [children]
   (let [cols-count (count children)
@@ -88,7 +88,7 @@
         [:div.hidden-md.hidden-lg.col-separator]
         child])]))
 
-(defn currency
+(defn ^:export currency
   "Renders a nice table of currency values and
    does math for you."
   [opts]
@@ -127,7 +127,7 @@
                 :validation-regex number-regex]])
             kinds)))]]))
 
-(defn input
+(defn ^:export input
   "Basic text input widget"
   [opts]
   {:pre [(:id opts)]}
@@ -143,7 +143,7 @@
      :on-change (partial write-state id)
      :validation-regex regex]))
 
-(defn input-calc
+(defn ^:export input-calc
   "input-calc is like a fancy input.number (or input.big-number)
    that when selected, pops up a calculator for easy editing."
   [opts]
@@ -198,7 +198,7 @@
                :validation-regex #"[-+]?[0-9]*"]]]])))
 
 (declare dynamic-table)
-(defn inventory
+(defn ^:export inventory
   "A container for items"
   [opts]
   {:pre [(:id opts)
@@ -207,7 +207,7 @@
   [dynamic-table {:id (:id opts)
                   :cols [(:label opts)]}])
 
-(defn picker
+(defn ^:export picker
   [opts]
   {:pre [(contains? opts :items)
          (:id opts)]}
@@ -309,7 +309,7 @@
             (reset! new-row-value empty-new-row)
             (write-state id (conj items new-row))))]]]]]])
 
-(defn dynamic-table
+(defn ^:export dynamic-table
   "A dynamic table is one whose values are added in a dialog, for
    which you may provide suggestions."
   [opts]
@@ -454,7 +454,7 @@
                 :on-click #(reset! show-picker? true)])
              {:key :-add-new-element})])))))
 
-(defn selectable-set
+(defn ^:export selectable-set
   [opts]
   (selectable-set-base
     opts
@@ -464,7 +464,7 @@
         :on-mouse-out #(reset! mouse-over? false)}
        (seq kids)])))
 
-(defn selectable-list
+(defn ^:export selectable-list
   [opts]
   (selectable-set-base
     opts
@@ -475,7 +475,7 @@
         :on-mouse-out #(reset! mouse-over? false)}
        :children kids])))
 
-(defn partial-number
+(defn ^:export partial-number
   "A 'partial number' has a current value and a max value.
    The id of the max value is this (str id '-max')"
   [opts]

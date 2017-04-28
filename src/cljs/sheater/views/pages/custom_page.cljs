@@ -72,8 +72,12 @@
               new-state
               '(declare mathify))
             (reset! cached-eval-state new-state)))]
-    (eval-in compiler-state
-             form)))
+    (try
+      (eval-in compiler-state
+               form)
+      (catch :default e
+        (js/console.error "Error compiling:" (str form), e)
+        (throw e)))))
 
 ;;
 ;; Custom form translation/inflation
@@ -107,7 +111,7 @@
       (not= -1 (.indexOf to-coerce ".")) (js/parseFloat to-coerce)
       :else (js/parseInt to-coerce))))
 
-(defn mathify
+(defn ^:export mathify
   [op]
   (if (symbol? op)
     `(mathify ~op)
@@ -200,7 +204,7 @@
 ;; TODO do this just once and cache the result.
 ;; Otherwise, switching pages on even a moderately
 ;; complicated sheet is going to be sloooow.
-(defn translate
+(defn ^:export translate
   ([page state element]
    (translate page state {} element))
   ([page state {:keys [symbols?] :as opts} element]

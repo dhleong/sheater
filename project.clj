@@ -1,6 +1,6 @@
 (defproject sheater "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.229"]
+                 [org.clojure/clojurescript "1.9.521"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.2"]
                  [org.clojure/core.async "0.2.391"]
@@ -56,14 +56,16 @@
      :source-paths ["src/cljs"]
      :compiler     {:main            sheater.core
                     :output-to       "resources/public/js/compiled/app.js"
-                    ; FIXME: :advanced fails to call sheater.core.init
-                    ; for some reason. It just doesn't do it.
+                    ; FIXME: :advanced optimizes away cljs.core
+                    ; stuff, breaking the dynamic templates...
                     ;; :optimizations   :advanced
+                    ;; :verbose true
                     :optimizations   :simple
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false
 
-                    :externs ["externs/gapi.js"]}}
+                    :externs ["externs/gapi.js"
+                              "externs/cljs.js"]}}
 
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
