@@ -56,9 +56,14 @@
      :source-paths ["src/cljs"]
      :compiler     {:main            sheater.core
                     :output-to       "resources/public/js/compiled/app.js"
-                    :optimizations   :advanced
+                    ; FIXME: :advanced fails to call sheater.core.init
+                    ; for some reason. It just doesn't do it.
+                    ;; :optimizations   :advanced
+                    :optimizations   :simple
                     :closure-defines {goog.DEBUG false}
-                    :pretty-print    false}}
+                    :pretty-print    false
+
+                    :externs ["externs/gapi.js"]}}
 
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]

@@ -12,8 +12,8 @@
 
 
 (defn dev-setup []
+  (enable-console-print!)
   (when config/debug?
-    (enable-console-print!)
     (println "dev mode")))
 
 (defn mount-root []
@@ -22,6 +22,7 @@
                   (.getElementById js/document "app")))
 
 (defn ^:export init []
+  (js/console.log "core.init")
   (routes/app-routes)
   (re-frame/dispatch-sync [:initialize-db])
   (dev-setup)

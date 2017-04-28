@@ -101,7 +101,7 @@
 
 ;;
 ;; NOTE: Exposed to index.html
-(defn handle-client-load
+(defn ^:export handle-client-load
   []
   (js/console.log "handle-client-load")
   (js/gapi.load "client:auth2", init-client!))
