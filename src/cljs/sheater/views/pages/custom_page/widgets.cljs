@@ -222,6 +222,93 @@
      :on-change (fn [new-selection]
                   (dispatch [:edit-sheet-state id new-selection]))]))
 
+;; -- Dynamic Table ------------------------------------------------------------
+
+(defn dynamic-table-prompt
+  [id show-prompt? columns choices items header-row
+   empty-new-row new-row-value]
+  [rc/modal-panel
+   :backdrop-on-click #(reset! show-prompt? nil)
+   :wrap-nicely? false
+   :child
+   [rc/v-box
+    :class "modal-content"
+    :children
+    [[:div.modal-header
+      "Add New"]
+     [:div.modal-body
+      [:table
+       [:tbody
+
+        ;; picker:
+        (when choices
+          [:tr
+           [:td {:colSpan (count columns)
+                 :text-align :center}
+            [rc/single-dropdown
+             :choices (map
+                        (fn [item]
+                          {:id (first item)
+                           :label (first item)})
+                        choices)
+             :filter-box? true
+             :model nil
+             :placeholder "Pick a value"
+             :width "100%"
+             :on-change (fn [first-val]
+                          (let [vect (->> choices
+                                          (filter
+                                            (comp (partial = first-val)
+                                                  first))
+                                          first)]
+                            (reset! show-prompt? false)
+                            (write-state id (conj items vect))))]]])
+        (when choices
+          [:tr
+           [:td {:colSpan (count columns)
+                 :text-align :center}
+            " - Or -"]])
+
+        ;; manual input:
+        header-row
+        (vec
+          (cons
+            :tr
+            (map-indexed
+              (fn [index label]
+                (let [desc? (= :desc label)]
+                  [:th
+                   [(if desc?
+                      rc/input-textarea
+                      rc/input-text)
+                    :model (nth @new-row-value index)
+                    :placeholder (if (= :desc label)
+                                   "Long Description"
+                                   (str label))
+                    :width (if desc?
+                             "170px"
+                             "150px")
+                    :on-change
+                    (fn [new-value]
+                      (swap! new-row-value
+                             assoc
+                             index
+                             new-value))]]))
+              columns)))]]
+      [:div.modal-footer
+       [rc/button
+        :label "Cancel"
+        :on-click #(reset! show-prompt? false)]
+       [rc/button
+        :label "Add"
+        :class "btn-primary"
+        :on-click
+        (fn []
+          (let [new-row @new-row-value]
+            (reset! show-prompt? false)
+            (reset! new-row-value empty-new-row)
+            (write-state id (conj items new-row))))]]]]]])
+
 (defn dynamic-table
   "A dynamic table is one whose values are added in a dialog, for
    which you may provide suggestions."
@@ -306,87 +393,15 @@
            [:td
             {:colSpan (count columns)
              :style {:text-align :center}}
-            [rc/popover-anchor-wrapper
-             :showing? show-prompt?
-             :anchor [rc/md-icon-button
-                      :md-icon-name "zmdi-plus"
-                      :on-click #(reset! show-prompt? true)]
-             :position :right-below
-
-             ;; The pick/input item popover prompt
-             :popover
-             [rc/popover-content-wrapper
-              :title "Add New"
-              :on-cancel #(reset! show-prompt? false)
-              :body
-              [:table
-               [:tbody
-
-                ;; picker:
-                (when choices
-                  [:tr
-                   [:td {:colSpan (count columns)
-                         :text-align :center}
-                    [rc/single-dropdown
-                     :choices (map
-                                (fn [item]
-                                  {:id (first item)
-                                   :label (first item)})
-                                choices)
-                     :filter-box? true
-                     :model nil
-                     :placeholder "Pick a value"
-                     :width "100%"
-                     :on-change (fn [first-val]
-                                  (let [vect (->> choices
-                                                  (filter
-                                                    (comp (partial = first-val)
-                                                          first))
-                                                  first)]
-                                    (reset! show-prompt? false)
-                                    (write-state id (conj items vect))))]]])
-                (when choices
-                  [:tr
-                   [:td {:colSpan (count columns)
-                         :text-align :center}
-                    " - Or -"]])
-
-                ;; manual input:
-                header-row
-                (vec
-                  (cons
-                    :tr
-                    (map-indexed
-                      (fn [index label]
-                        (let [desc? (= :desc label)]
-                          [:th
-                           [(if desc?
-                              rc/input-textarea
-                              rc/input-text)
-                            :model (nth @new-row-value index)
-                            :placeholder (if (= :desc label)
-                                           "Long Description"
-                                           (str label))
-                            :width (if desc?
-                                     "170px"
-                                     "150px")
-                            :on-change
-                            (fn [new-value]
-                              (swap! new-row-value
-                                     assoc
-                                     index
-                                     new-value))]]))
-                      columns)))
-                [:tr
-                 [:td
-                  {:colSpan (count columns)}
-                  [rc/button
-                   :label "Add!"
-                   :on-click (fn []
-                               (let [new-row @new-row-value]
-                                 (reset! show-prompt? false)
-                                 (reset! new-row-value empty-new-row)
-                                 (write-state id (conj items new-row))))]]]]]]]]]]]))))
+            (when @show-prompt?
+              [dynamic-table-prompt id
+               show-prompt?
+               columns choices items
+               header-row empty-new-row
+               new-row-value])
+            [rc/md-icon-button
+             :md-icon-name "zmdi-plus"
+             :on-click #(reset! show-prompt? true)]]]]]))))
 
 (defn selectable-set-base
   [opts wrap-children]
