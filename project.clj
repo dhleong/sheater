@@ -13,7 +13,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs"]
+  :source-paths ["src/clj" "src/cljc" "src/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
@@ -41,7 +41,7 @@
   :cljsbuild
   {:builds
    [{:id           "dev"
-     :source-paths ["src/cljs"]
+     :source-paths ["src/clj" "src/cljc" "src/cljs"]
      :figwheel     {:on-jsload "sheater.core/mount-root"}
      :compiler     {:main                 sheater.core
                     :output-to            "resources/public/js/compiled/app.js"
@@ -53,22 +53,24 @@
                     }}
 
     {:id           "min"
-     :source-paths ["src/cljs"]
+     :source-paths ["src/clj" "src/cljc" "src/cljs"]
      :compiler     {:main            sheater.core
                     :output-to       "resources/public/js/compiled/app.js"
                     ; FIXME: :advanced optimizes away cljs.core
                     ; stuff, breaking the dynamic templates...
-                    ;; :optimizations   :advanced
+                    :optimizations   :advanced
                     ;; :verbose true
-                    :optimizations   :simple
+                    ;; :optimizations   :simple
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false
+                    ;; :pretty-print    true
+                    ;; :pseudo-names    true
 
                     :externs ["externs/gapi.js"
-                              "externs/cljs.js"]}}
+                              "externs/sheater.js"]}}
 
     {:id           "test"
-     :source-paths ["src/cljs" "test/cljs"]
+     :source-paths ["src/clj" "src/cljc" "src/cljs"]
      :compiler     {:main          sheater.runner
                     :output-to     "resources/public/js/compiled/test.js"
                     :output-dir    "resources/public/js/compiled/test/out"

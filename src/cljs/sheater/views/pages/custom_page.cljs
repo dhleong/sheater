@@ -6,7 +6,8 @@
             [reagent.impl.template :refer [parse-tag]]
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]
-            [sheater.views.pages.custom-page.widgets :as widg]))
+            [sheater.views.pages.custom-page.widgets :as widg]
+            [sheater.templ.fun :refer [exposed-fn? $->val ->fun ->number]]))
 
 (declare mathify translate)
 
@@ -46,10 +47,15 @@
   [state form]
   (eval state
         form
-        {:eval js-eval
+        {:eval (fn [src]
+                 (try
+                   (js-eval src)
+                   (catch :default e
+                     (js/console.warn "FAILED to js/eval:" (:source src))
+                     (throw e))))
          :context :expr
          :source-map true
-         :ns 'sheater.views.pages.custom-page}
+         :ns 'sheater.templ.fun}
         :value))
 
 (defn eval-form
@@ -62,15 +68,14 @@
             ; eval an ns so the imports are recognized
             (eval-in
               new-state
-              '(ns sheater.views.pages.custom-page
-                 (:require [re-frame.core :as re]
-                           [re-com.core :as rc]
-                           [sheater.views.pages.custom-page.widgets :as widg])))
-            ;
-            ; eval a declare so our functions are also recognized
-            (eval-in
-              new-state
-              '(declare mathify))
+              '(do
+                 (ns sheater.templ.fun
+                   (:require [re-frame.core :as re]
+                             [re-com.core :as rc]
+                             [sheater.views.pages.custom-page.widgets :as widg]))
+                 ;
+                 ; eval a declare so our functions are also recognized
+                 (declare mathify)))
             (reset! cached-eval-state new-state)))]
     (try
       (eval-in compiler-state
@@ -95,21 +100,18 @@
       \$ (let [static-key (keyword (subs n 1))]
            ; just get from :active-static so they all share
            ; a single subscription
-           `(get
-              (deref (subscribe [:active-static]))
-              ~static-key))
+           `($->val
+              ; pass through (inflate) again in case we need to
+              ; use the exposed- factory
+              ~(inflate-value-fn-key page state static-key)))
       \# (let [data-key (keyword (subs n 1))]
            (get state data-key))
-      ; normal keyword
-      kw)))
-
-(defn ->number
-  [to-coerce]
-  (when to-coerce
-    (cond
-      (number? to-coerce) to-coerce
-      (not= -1 (.indexOf to-coerce ".")) (js/parseFloat to-coerce)
-      :else (js/parseInt to-coerce))))
+      ; normal keyword;
+      (if js/goog.DEBUG
+        kw
+        ; under advanced compilation, the cljs.core.Keyword constructor
+        ; disappears, so we have to call through to the exposed factory
+        `(sheater.templ.fun/exported-keyword ~n)))))
 
 (defn ^:export mathify
   [op]
@@ -123,8 +125,8 @@
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
     (seq? part) (map (partial inflate-value-fn-part page state) part)
-    (vector? part) (vec (map (partial inflate-value-fn-part page state) part))
-    (contains? #{'+ '- '* '/} part) (mathify part)
+    (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
+    (exposed-fn? part) (->fun part) ; TODO mathify
     :else part))
 
 (defn inflate-value-fn
