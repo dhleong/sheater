@@ -92,4 +92,3 @@
   [sym]
   (or (get exposed-fns sym)
       (wrap-unknown-fn sym)))
-

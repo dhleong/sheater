@@ -9,7 +9,7 @@
             [sheater.views.pages.custom-page.widgets :as widg]
             [sheater.templ.fun :refer [exposed-fn? $->val ->fun ->number]]))
 
-(declare mathify translate)
+(declare translate)
 
 (defn- ->js [var-name]
   (-> var-name
@@ -41,7 +41,7 @@
 ;;
 ;; Clojurescript eval
 
-(defonce cached-eval-state (atom nil))
+(def cached-eval-state (atom nil))
 
 (defn- eval-in
   [state form]
@@ -55,7 +55,7 @@
                      (throw e))))
          :context :expr
          :source-map true
-         :ns 'sheater.templ.fun}
+         :ns 'sheater.views.pages.custom-page}
         :value))
 
 (defn eval-form
@@ -68,14 +68,21 @@
             ; eval an ns so the imports are recognized
             (eval-in
               new-state
+              '(ns sheater.views.pages.custom-page
+                 (:require [re-frame.core :as re]
+                           [re-com.core :as rc]
+                           [sheater.views.pages.custom-page.widgets :as widg]
+                           [sheater.templ.fun])))
+            ;
+            ; eval a declare so our functions are also recognized
+            #_(eval-in
+              new-state
               '(do
-                 (ns sheater.templ.fun
-                   (:require [re-frame.core :as re]
-                             [re-com.core :as rc]
-                             [sheater.views.pages.custom-page.widgets :as widg]))
-                 ;
-                 ; eval a declare so our functions are also recognized
-                 (declare mathify)))
+                 (declare sheater.templ.fun/exported-keys
+                          sheater.templ.fun/$->val)))
+            #_(eval-in
+              new-state
+              '(declare-all-exposed))
             (reset! cached-eval-state new-state)))]
     (try
       (eval-in compiler-state
@@ -113,20 +120,13 @@
         ; disappears, so we have to call through to the exposed factory
         `(sheater.templ.fun/exported-keyword ~n)))))
 
-(defn ^:export mathify
-  [op]
-  (if (symbol? op)
-    `(mathify ~op)
-    (fn mathified [& args]
-      (apply op (map ->number args)))))
-
 (defn inflate-value-fn-part
   [page state part]
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
     (seq? part) (map (partial inflate-value-fn-part page state) part)
     (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
-    (exposed-fn? part) (->fun part) ; TODO mathify
+    (exposed-fn? part) (->fun part)
     :else part))
 
 (defn inflate-value-fn

@@ -44,7 +44,18 @@
      ~fn-symbol
      sheater.templ.fun/mathify))
 
-;; (expose-fn {} * sheater.templ.fun/mathify)
+;; (defmacro declare-exposed
+;;   "Given a map of exposed fn names, declare them all"
+;;   [m]
+;;   (let [raw-symbols (keys m)
+;;         this-ns-name (name (ns-name *ns*))
+;;         exposed-fn-names (map
+;;                            (fn [raw-sym]
+;;                              _(symbol this-ns-name
+;;                                      (name raw-sym)))
+;;                            raw-symbols)]
+;;     `(declare ~@exposed-fn-names)))
+
 
 ;; (defmacro expose-math
 ;;   [math-fn-symbol]
