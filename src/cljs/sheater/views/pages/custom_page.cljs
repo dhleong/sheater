@@ -60,8 +60,8 @@
          :source-map true
          :ns 'sheater.views.pages.custom-page}
         (fn [res]
-          (if-let [v (:value res)]
-            v
+          (if (contains? res :value) ; nil or false are fine
+            (:value res)
             (do
               (js/console.error (str "Error evaluating: " form))
               (js/console.error (str res)))))))

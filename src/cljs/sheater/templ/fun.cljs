@@ -58,6 +58,7 @@
       (expose-fn concat)
       (expose-fn cons)
       (expose-fn contains?)
+      (expose-fn count)
       (expose-fn keys)
       (expose-fn vals)
       (expose-fn vec)
