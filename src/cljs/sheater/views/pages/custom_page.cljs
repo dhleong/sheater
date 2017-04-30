@@ -3,6 +3,7 @@
   sheater.views.pages.custom-page
   (:require [clojure.string :as str]
             [cljs.js :refer [empty-state eval js-eval]]
+            [cljs.reader :as edn]
             [reagent.impl.template :refer [parse-tag]]
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]
@@ -45,10 +46,12 @@
 
 (defn- eval-in
   [state form]
+  (js/console.warn "(eval-in): " (str form))
   (eval state
         form
         {:eval (fn [src]
                  (try
+                   (js/console.warn "(js/eval): " (:source src))
                    (js-eval src)
                    (catch :default e
                      (js/console.warn "FAILED to js/eval:" (:source src))
@@ -56,7 +59,12 @@
          :context :expr
          :source-map true
          :ns 'sheater.views.pages.custom-page}
-        :value))
+        (fn [res]
+          (if-let [v (:value res)]
+            v
+            (do
+              (js/console.error (str "Error evaluating: " form))
+              (js/console.error (str res)))))))
 
 (defn eval-form
   [form]
@@ -75,14 +83,6 @@
                            [sheater.templ.fun])))
             ;
             ; eval a declare so our functions are also recognized
-            #_(eval-in
-              new-state
-              '(do
-                 (declare sheater.templ.fun/exported-keys
-                          sheater.templ.fun/$->val)))
-            #_(eval-in
-              new-state
-              '(declare-all-exposed))
             (reset! cached-eval-state new-state)))]
     (try
       (eval-in compiler-state
@@ -90,6 +90,25 @@
       (catch :default e
         (js/console.error "Error compiling:" (str form), e)
         (throw e)))))
+
+(defn ^:export eval-fn-string
+  ([string]
+   (eval-fn-string false string))
+  ([symbols? string]
+   (eval-form
+     (inflate-value-fn
+       @(subscribe [:active-page])
+       @(subscribe [:active-state])
+       {:symbols? symbols?}
+       (edn/read-string string)))))
+
+(defn ^:export eval-string
+  [string]
+  (eval-form
+    (translate
+      @(subscribe [:active-page])
+      @(subscribe [:active-state])
+      (edn/read-string string))))
 
 ;;
 ;; Custom form translation/inflation
@@ -120,20 +139,32 @@
         ; disappears, so we have to call through to the exposed factory
         `(sheater.templ.fun/exported-keyword ~n)))))
 
+(declare inflate-value-fn-part)
+(defn inflate-value-fn-seq
+  [page state part]
+  ; handle some special forms
+  (let [kind (first part)]
+    (if (contains? #{'let 'fn} kind)
+      (concat [kind (vec (inflate-value-fn-seq page state (second part)))]
+              ; body:
+              (inflate-value-fn-seq page state
+                                    (drop 2 part)))
+      (map (partial inflate-value-fn-part page state) part))))
+
 (defn inflate-value-fn-part
   [page state part]
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
-    (seq? part) (map (partial inflate-value-fn-part page state) part)
+    (seq? part) (inflate-value-fn-seq page state part)
     (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
     (exposed-fn? part) (->fun part)
     :else part))
 
 (defn inflate-value-fn
   [page state {:keys [symbols?]} fun]
-  ;; (println "INFLATE FUN:" fun)
+  (js/console.log "INFLATE FUN:" (str fun))
   (let [form (inflate-value-fn-part page state fun)]
-    ;; (println "->" form)
+    (js/console.log (when symbols? "symbols") "->" (str form))
     (if symbols?
       form
       (eval-form form))))
@@ -154,7 +185,9 @@
   (let [[_ bindings body] element
         bindings (vec (map (partial inflate-value-fn-part page state) bindings))
         body (translate page state {:symbols? true} body)]
-    ;; (cljs.pprint/pprint bindings)
+    (when (> (count bindings) 2)
+      (js/console.warn "(for ", (str bindings), " ...)", (count bindings))
+      (cljs.pprint/pprint bindings))
     (let [evald (eval-form
                   `(for ~bindings
                      ~body))]
