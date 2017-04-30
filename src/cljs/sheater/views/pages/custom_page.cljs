@@ -126,18 +126,11 @@
       \$ (let [static-key (keyword (subs n 1))]
            ; just get from :active-static so they all share
            ; a single subscription
-           `($->val
-              ; pass through (inflate) again in case we need to
-              ; use the exposed- factory
-              ~(inflate-value-fn-key page state static-key)))
+           `($->val ~static-key))
       \# (let [data-key (keyword (subs n 1))]
            (get state data-key))
       ; normal keyword;
-      (if js/goog.DEBUG
-        kw
-        ; under advanced compilation, the cljs.core.Keyword constructor
-        ; disappears, so we have to call through to the exposed factory
-        `(sheater.templ.fun/exported-keyword ~n)))))
+      kw)))
 
 (declare inflate-value-fn-part)
 (defn inflate-value-fn-seq

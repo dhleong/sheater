@@ -92,3 +92,15 @@
   [sym]
   (or (get exposed-fns sym)
       (wrap-unknown-fn sym)))
+
+(when-not js/goog.DEBUG
+  (js/goog.exportSymbol "cljs.core.Keyword"
+                        cljs.core/Keyword)
+  (js/goog.exportSymbol "cljs.core.PersistentArrayMap"
+                        cljs.core/PersistentArrayMap)
+  (js/goog.exportSymbol "cljs.core.PersistentHashMap"
+                        cljs.core/PersistentHashMap)
+  (js/goog.exportSymbol "cljs.core.PersistentHashSet"
+                        cljs.core/PersistentHashSet)
+  (js/goog.exportSymbol "cljs.core.PersistentVector"
+                        cljs.core/PersistentVector))
