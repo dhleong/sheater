@@ -62,6 +62,7 @@
       (expose-fn cons)
       (expose-fn contains?)
       (expose-fn count)
+      (expose-fn identity)
       (expose-fn keys)
       (expose-fn vals)
       (expose-fn vec)
@@ -89,11 +90,6 @@
         sym-string)
       nil)))
 
-(defn exposed-fn?
-  [sym]
-  (or (contains? exposed-fns sym)
-      (not (nil? (->special-form sym)))))
-
 (defn ->special-form
   [sym]
   (get
@@ -101,12 +97,17 @@
      'fn 'fn*}
     sym))
 
+(defn exposed-fn?
+  [sym]
+  (or (contains? exposed-fns sym)
+      (not (nil? (->special-form sym)))))
+
 (defn ^:export ->fun
   "Given a raw symbol, return the exposed function"
   [sym]
   (or (get exposed-fns sym)
       (->special-form sym)
-      (wrap-unknown-fn sym)))
+      sym))  ; just return unchanged
 
 (when-not js/goog.DEBUG
   (js/goog.exportSymbol "cljs.core.Symbol"
