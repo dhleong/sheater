@@ -10,7 +10,10 @@
             [sheater.views.pages.custom-page.widgets :as widg]
             [sheater.templ.fun :refer [exposed-fn? $->val ->fun ->number]]))
 
-(declare translate)
+(declare translate inflate-value-fn)
+(def special-let-forms
+  #{'let 'fn 'let* 'fn*
+    'when-let 'if-let})
 
 (defn- ->js [var-name]
   (-> var-name
@@ -95,12 +98,11 @@
   ([string]
    (eval-fn-string false string))
   ([symbols? string]
-   (eval-form
-     (inflate-value-fn
-       @(subscribe [:active-page])
-       @(subscribe [:active-state])
-       {:symbols? symbols?}
-       (edn/read-string string)))))
+   (inflate-value-fn
+     @(subscribe [:active-page])
+     @(subscribe [:active-state])
+     {:symbols? symbols?}
+     (edn/read-string string))))
 
 (defn ^:export eval-string
   [string]
@@ -137,8 +139,8 @@
   [page state part]
   ; handle some special forms
   (let [kind (first part)]
-    (if (contains? #{'let 'fn} kind)
-      (concat [kind (vec (inflate-value-fn-seq page state (second part)))]
+    (if (contains? special-let-forms kind)
+      (concat [(->fun kind) (vec (inflate-value-fn-seq page state (second part)))]
               ; body:
               (inflate-value-fn-seq page state
                                     (drop 2 part)))
@@ -149,7 +151,8 @@
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
     (seq? part) (inflate-value-fn-seq page state part)
-    (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
+    ;; (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
+    (vector? part) (vec (map (partial inflate-value-fn-part page state) part))
     (exposed-fn? part) (->fun part)
     :else part))
 
@@ -221,13 +224,15 @@
                         (partial inflate-value-fn page state opts))
                 arg)]
       ; finally, let the right one in:
-      (if-let [factory (get widget-types el)]
-        (if symbols?
-          `[~(:symbol factory) ~arg ~children]
-          (vec
-            (concat [(:fn factory) arg]
-                    children)))
-        [:div "Unknown element type" el]))))
+      (let [result  (if-let [factory (get widget-types el)]
+                      (if symbols?
+                        `[~(:symbol factory) ~arg ~children]
+                        (vec
+                          (concat [(:fn factory) arg]
+                                  children)))
+                      [:div "Unknown element type" el])]
+        ;; (println "Translated " element " - > " result)
+        result))))
 
 ;; TODO do this just once and cache the result.
 ;; Otherwise, switching pages on even a moderately

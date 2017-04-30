@@ -49,10 +49,13 @@
       (expose-fn - mathify)
       (expose-fn / mathify)
       (expose-fn * mathify)
+      (expose-fn =)
+      (expose-fn not=)
 
       (expose-fn keyword)
       (expose-fn name)
       (expose-fn str)
+      (expose-fn symbol)
       (expose-fn vector)
 
       (expose-fn concat)
@@ -69,7 +72,9 @@
       (expose-fn filter)
       (expose-fn map)
       (expose-fn mapcat)
-      (expose-fn remove)))
+      (expose-fn remove)
+
+      (expose-fn partial)))
 
 ;;
 ;; Public API
@@ -86,15 +91,26 @@
 
 (defn exposed-fn?
   [sym]
-  (contains? exposed-fns sym))
+  (or (contains? exposed-fns sym)
+      (not (nil? (->special-form sym)))))
+
+(defn ->special-form
+  [sym]
+  (get
+    {'let 'let*
+     'fn 'fn*}
+    sym))
 
 (defn ^:export ->fun
   "Given a raw symbol, return the exposed function"
   [sym]
   (or (get exposed-fns sym)
+      (->special-form sym)
       (wrap-unknown-fn sym)))
 
 (when-not js/goog.DEBUG
+  (js/goog.exportSymbol "cljs.core.Symbol"
+                        cljs.core/Symbol)
   (js/goog.exportSymbol "cljs.core.Keyword"
                         cljs.core/Keyword)
   (js/goog.exportSymbol "cljs.core.PersistentArrayMap"
