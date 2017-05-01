@@ -3,6 +3,27 @@
   sheater.templ.fun
   (:require [clojure.string :as str]))
 
+; NOT exhaustive, but should cover our uses:
+(def reserved?
+  #{"if" "let" "for"})
+
+(defn ->js-name
+  [n]
+  (if (reserved? n)
+    (str n "$")
+    (str/replace
+      n
+      #"[+-/*?<>]"
+      (fn [ch]
+        (case ch
+          "+" "_PLUS_"
+          "-" "_"
+          "/" "_SLASH_"
+          "*" "_STAR_"
+          "?" "_QMARK_"
+          ">" "_GT_"
+          "<" "_LT_")))))
+
 (defmacro expose-fn
   [m fn-symbol & [run-on-args]]
   (let [n (name fn-symbol)
@@ -11,16 +32,7 @@
         exported-symbol (symbol (str "exported-"
                                      (str/replace n #"/" "_SLASH_")))
         js-name (str this-ns-name "."
-                     (str/replace
-                       exported-name
-                       #"[+-/*?]"
-                       (fn [ch]
-                         (case ch
-                           "+" "_PLUS_"
-                           "-" "_"
-                           "/" "_SLASH_"
-                           "*" "_STAR_"
-                           "?" "_QMARK_"))))
+                     (->js-name exported-name))
         core-ns (-> fn-symbol resolve meta :ns ns-name name)
         core-ns-symbol (symbol core-ns n)]
     `(as-> ~m ~'m
@@ -37,12 +49,28 @@
                                   ~this-ns-name
                                   ~(name exported-symbol)))))))
 
-(defmacro expose-math-fn
-  [m fn-symbol]
-  `(expose-fn
-     ~m
-     ~fn-symbol
-     sheater.templ.fun/mathify))
+(defmacro export-macro
+  "Ensure a cljs.core macro is exported"
+  [macro-sym & [conditional?]]
+  (let [export `(~'js/goog.exportSymbol
+                  ~(str "cljs.core$macros."
+                        (->js-name (name macro-sym)))
+                  ~(symbol (str "cljs.core$macros/"
+                                (name macro-sym))))]
+    (if conditional?
+      `(when-not js/goog.DEBUG
+         ~export)
+      export)))
+
+(defmacro export-sym
+  [sym]
+  (let [n (name sym)
+        core-ns (if-let [sym-meta (-> sym resolve meta)]
+                  (-> sym-meta :ns ns-name name)
+                  "cljs.core")]
+    `(~'js/goog.exportSymbol
+       ~(str core-ns "." (->js-name n))
+       ~(symbol core-ns n))))
 
 ;; (defmacro declare-exposed
 ;;   "Given a map of exposed fn names, declare them all"

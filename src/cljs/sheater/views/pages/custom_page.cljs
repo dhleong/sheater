@@ -47,18 +47,26 @@
 
 (def cached-eval-state (atom nil))
 
+(defn process-source
+  [js-src]
+  (-> js-src
+      (str/replace
+        #"(new cljs.core.Keyword\((.*)\)).cljs\$core\$IFn\$_invoke\$arity\$([0-9]+)\("
+        "$1.call(null,")))
+
 (defn- eval-in
   [state form]
   (js/console.warn "(eval-in): " (str form))
   (eval state
         form
         {:eval (fn [src]
-                 (try
-                   (js/console.warn "(js/eval): " (:source src))
-                   (js-eval src)
-                   (catch :default e
-                     (js/console.warn "FAILED to js/eval:" (:source src))
-                     (throw e))))
+                 (let [src (update src :source process-source)]
+                   (try
+                     (js/console.warn "(js/eval): " (:source src))
+                     (js-eval src)
+                     (catch :default e
+                       (js/console.warn "FAILED to js/eval:" (:source src))
+                       (throw e)))))
          :context :expr
          :source-map true
          :ns 'sheater.views.pages.custom-page}

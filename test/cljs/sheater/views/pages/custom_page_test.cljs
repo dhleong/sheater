@@ -1,7 +1,13 @@
 (ns sheater.views.pages.custom-page-test
   (:require [cljs.test :refer-macros [deftest testing is run-tests]]
             [cljs.nodejs :as node]
-            [sheater.views.pages.custom-page :refer [render inflate-value-fn]]))
+            [sheater.views.pages.custom-page :refer [render inflate-value-fn process-source]]))
+
+(deftest process-source-test
+  (testing "Rename keyword-as-fn calls"
+    (is (= "var res = new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).call(null,something)"
+           (process-source
+              "var res = new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(something)")))))
 
 (deftest render-test
   #_(testing "FIXME new test"

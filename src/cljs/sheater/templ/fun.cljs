@@ -2,7 +2,7 @@
       :doc "Exposed functions for templating"}
   sheater.templ.fun
   (:require [re-frame.core :refer [subscribe]])
-  (:require-macros [sheater.templ.fun :refer [expose-fn]]))
+  (:require-macros [sheater.templ.fun :refer [expose-fn export-macro export-sym]]))
 
 (defn ^:export $->val
   "Read a static value"
@@ -110,15 +110,40 @@
       sym))  ; just return unchanged
 
 (when-not js/goog.DEBUG
-  (js/goog.exportSymbol "cljs.core.Symbol"
+  (export-macro ->)
+  (export-macro ->>)
+  (export-macro as->)
+  (export-macro cond)
+  (export-macro cond->)
+  (export-macro cond->>)
+  ;; (export-macro for)
+  (export-macro if-let)
+  (export-macro if-not)
+  (export-macro if-some)
+  (export-macro some->)
+  (export-macro some->>)
+  (export-macro when)
+  (export-macro when-first)
+  (export-macro when-let)
+  (export-macro when-not)
+  (export-macro when-some)
+
+  (export-sym cljs.core/Symbol)
+  (export-sym cljs.core/Keyword)
+  (export-sym cljs.core/PersistentArrayMap)
+  (export-sym cljs.core/PersistentHashMap)
+  (export-sym cljs.core/PersistentHashSet)
+  (export-sym cljs.core/PersistentVector)
+
+  #_(js/goog.exportSymbol "cljs.core.Symbol"
                         cljs.core/Symbol)
-  (js/goog.exportSymbol "cljs.core.Keyword"
+  #_(js/goog.exportSymbol "cljs.core.Keyword"
                         cljs.core/Keyword)
-  (js/goog.exportSymbol "cljs.core.PersistentArrayMap"
+  #_(js/goog.exportSymbol "cljs.core.PersistentArrayMap"
                         cljs.core/PersistentArrayMap)
-  (js/goog.exportSymbol "cljs.core.PersistentHashMap"
+  #_(js/goog.exportSymbol "cljs.core.PersistentHashMap"
                         cljs.core/PersistentHashMap)
-  (js/goog.exportSymbol "cljs.core.PersistentHashSet"
+  #_(js/goog.exportSymbol "cljs.core.PersistentHashSet"
                         cljs.core/PersistentHashSet)
-  (js/goog.exportSymbol "cljs.core.PersistentVector"
+  #_(js/goog.exportSymbol "cljs.core.PersistentVector"
                         cljs.core/PersistentVector))
