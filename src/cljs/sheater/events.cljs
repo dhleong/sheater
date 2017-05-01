@@ -90,19 +90,24 @@
                          page))
                      pages-list))))))
 
-(reg-event-db
+(reg-event-fx
   :edit-sheet-state
   [trim-v]
-  (fn [db [k v]]
-    (let [sheet-id (-> db
-                       :active-panel
-                       second
-                       first)]
-      (println "Edit" sheet-id k v)
-      (update-in db
-                 [:sheets sheet-id :data :state]
-                 assoc
-                 k v))))
+  (fn [{:keys [db]} [k v]]
+    (let [active-panel (:active-panel db)
+          viewer? (= :viewer (first active-panel))
+          sheet-id (-> active-panel
+                       second  ; [sheet, page] pair
+                       first)] ; sheet
+      ; don't bother saving if there was no change
+      (when-not (= v (get-in db [:sheets sheet-id :data :state k]))
+        (println "Edit" sheet-id k v "(viewer?" viewer? ")")
+        {:db (update-in db
+                        [:sheets sheet-id :data :state]
+                        assoc
+                        k v)
+         :save-sheet-throttled! (when viewer?
+                                  sheet-id)}))))
 
 (reg-event-db
   :delete-sheet!

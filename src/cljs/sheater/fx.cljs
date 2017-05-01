@@ -50,3 +50,23 @@
           provider-id
           :inst
           (save-sheet sheet)))))
+
+(defonce save-sheet-timers (atom {}))
+(def throttled-save-timeout 7500)
+
+(reg-fx
+  :save-sheet-throttled!
+  (fn [sheet-id]
+    (when sheet-id
+      (when-let [timer (get @save-sheet-timers sheet-id)]
+        (js/clearTimeout timer))
+      (js/console.log "Queue throttled-save of" (str sheet-id))
+      (swap! save-sheet-timers
+             assoc
+             sheet-id
+             (js/setTimeout
+               (fn []
+                 (js/console.log "RUN throttled-save of" (str sheet-id))
+                 (swap! save-sheet-timers dissoc sheet-id)
+                 (dispatch [:save-sheet! sheet-id]))
+               throttled-save-timeout)))))
