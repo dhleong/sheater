@@ -51,7 +51,9 @@
   [js-src]
   (-> js-src
       (str/replace
-        #"(new cljs.core.Keyword\((.*)\)).cljs\$core\$IFn\$_invoke\$arity\$([0-9]+)\("
+        ; we could also just replace the _invoke sequence, but
+        ; that may or may not be safe....
+        #"(new cljs\.core\.Keyword\(null,\"[^\"]+\",\"[^\"]+\",\([0-9-]+\)\))\.cljs\$core\$IFn\$_invoke\$arity\$([0-9]+)\("
         "$1.call(null,")))
 
 (defn- eval-in
@@ -193,8 +195,12 @@
       (js/console.warn "(for ", (str bindings), " ...)", (count bindings))
       (cljs.pprint/pprint bindings))
     (let [evald (eval-form
-                  `(for ~bindings
-                     ~body))]
+                  #_(for ~bindings
+                     ~body)
+                  `(sheater.templ.fun/exported-map
+                     (fn* [~(first bindings)]
+                          ~body)
+                     ~(second bindings)))]
       ;; (cljs.pprint/pprint evald)
       evald)))
 
@@ -219,18 +225,21 @@
                     :class class)]
             children))))))
 
+(defn update-if
+  [m k fun]
+  (if (k m)
+    (update m k fun)
+    m))
+
 (defn translate-auto-input
   "`element` is guaranteed to be a vector"
   [page state {:keys [symbols?] :as opts} element]
   (when-let [[el arg children] (destructure-auto-input element)]
-    (let [arg (if (:items arg)
-                (update arg :items
-                        (partial inflate-value-fn page state opts))
-                arg)
-          arg (if (:value arg)
-                (update arg :value
-                        (partial inflate-value-fn page state opts))
-                arg)]
+    (let [inflate-arg-part (partial inflate-value-fn page state opts)
+          arg (-> arg
+                  (update-if :id inflate-arg-part)
+                  (update-if :items inflate-arg-part)
+                  (update-if :value inflate-arg-part))]
       ; finally, let the right one in:
       (let [result  (if-let [factory (get widget-types el)]
                       (if symbols?

@@ -7,7 +7,17 @@
   (testing "Rename keyword-as-fn calls"
     (is (= "var res = new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).call(null,something)"
            (process-source
-              "var res = new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(something)")))))
+              "var res = new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(something)")))
+    (is (= "other.call(foo, new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).call(null,a))"
+           (process-source
+              "other.call(foo, new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(a))")))
+    (is (= (str "other.call(foo, "
+                "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).call(null,a),"
+                "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).call(null,b))")
+           (process-source
+             (str "other.call(foo, "
+                  "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(a),"
+                  "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(b))"))))))
 
 (deftest render-test
   #_(testing "FIXME new test"
