@@ -58,13 +58,13 @@
 
 (defn- eval-in
   [state form]
-  (js/console.warn "(eval-in): " (str form))
+  ;; (js/console.warn "(eval-in): " (str form))
   (eval state
         form
         {:eval (fn [src]
                  (let [src (update src :source process-source)]
                    (try
-                     (js/console.warn "(js/eval): " (:source src))
+                     ;; (js/console.warn "(js/eval): " (:source src))
                      (js-eval src)
                      (catch :default e
                        (js/console.warn "FAILED to js/eval:" (:source src))
@@ -75,7 +75,8 @@
         (fn [res]
           (if (contains? res :value) ; nil or false are fine
             (:value res)
-            (do
+            (when-not (= "Could not require re-frame.core"
+                         (ex-message (:error res)))
               (js/console.error (str "Error evaluating: " form))
               (js/console.error (str res)))))))
 
@@ -168,9 +169,9 @@
 
 (defn inflate-value-fn
   [page state {:keys [symbols?]} fun]
-  (js/console.log "INFLATE FUN:" (str fun))
+  ;; (js/console.log "INFLATE FUN:" (str fun))
   (let [form (inflate-value-fn-part page state fun)]
-    (js/console.log (when symbols? "symbols") "->" (str form))
+    ;; (js/console.log (when symbols? "symbols") "->" (str form))
     (if symbols?
       form
       (eval-form form))))

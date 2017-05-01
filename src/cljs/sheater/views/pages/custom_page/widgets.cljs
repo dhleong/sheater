@@ -51,7 +51,7 @@
 
 (defn write-state
   [k v]
-  (println k " <- " v)
+  (println "write-state:" k " <- " v)
   (dispatch [:edit-sheet-state k v]))
 
 
@@ -187,7 +187,7 @@
                             (when-let [amount (js/parseInt v)]
                               (reset! show-calc? false)
                               (when-not (js/isNaN amount)
-                                (println "CHANGE!" amount)
+                                ;; (println "CHANGE!" amount)
                                 (write-state
                                   id (min
                                        (:max opts 99999999)

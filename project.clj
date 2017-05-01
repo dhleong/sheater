@@ -56,13 +56,10 @@
      :source-paths ["src/clj" "src/cljc" "src/cljs"]
      :compiler     {:main            sheater.core
                     :output-to       "resources/public/js/compiled/app.js"
-                    ; FIXME: :advanced optimizes away cljs.core
-                    ; stuff, breaking the dynamic templates...
                     :optimizations   :advanced
-                    ;; :verbose true
-                    ;; :optimizations   :simple
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false
+                    ; these flags are useful when debugging :advanced issues:
                     ;; :pretty-print    true
                     ;; :pseudo-names    true
 
