@@ -314,6 +314,7 @@
                     :width (if desc?
                              "170px"
                              "150px")
+                    :attr {:auto-focus (= index 0)}
                     :on-change
                     (fn [new-value]
                       (swap! new-row-value

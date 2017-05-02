@@ -53,6 +53,7 @@
         [[rc/input-textarea
           :model (:body @note "")
           :placeholder "Note body"
+          :attr {:auto-focus true}
           :change-on-blur? false
           :rows 6
           :width "350px"
