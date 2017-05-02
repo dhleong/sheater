@@ -45,7 +45,8 @@
 
 (defn- auth-instance
   "Convenience to get the gapi auth instance:
-  gapi.auth2.getAuthInstance()"
+   gapi.auth2.getAuthInstance().
+   @return {gapi.AuthInstance}"
   []
   (js/gapi.auth2.getAuthInstance))
 
