@@ -78,7 +78,13 @@
    [{:label "Intimidation"
      :desc "Overawing others with physical presence and threats."}]}
   :talents
-  [{:label "Chirurgy (Novice)"
+  [{:label "Armor Training (Novice)"
+    :desc "You can wear leather and mail armor without suffering a penalty to Dexterity."}
+   {:label "Armor Training (Journeyman)"
+    :desc "You can wear plate armor without suffering a penalty to Dexterity."}
+   {:label "Armor Training (Master)"
+    :desc "You can get the most out of your armor. You gain the bene t of half the Armor Rating (rounded down) of your armor when you take penetrating damage. (Normally, armor provides no defense against penetrating damage.)"}
+   {:label "Chirurgy (Novice)"
     :desc "You have trained in the art of chirurgy and your aid is swift and sure. Heal is a minor action for you."}
    {:label "Contacts (Novice)"
     :desc "You can attempt to make a contact out of a NPC with a successful Communication (Persuasion) test. The GM will set the target number based on the likelihood of you knowing the NPC or having mutual friends. The more distant the NPC’s homeland or social class from yours, the more dif cult the test will be. A contact will be friendly to you, but won’t go out of the way to help you without additional motivation. You can’t make a contact out of a NPC who already dislikes you or is an enemy."}
@@ -101,7 +107,19 @@
    {:label "Fire Arcana (Master)"
     :desc "You learn the spell Firestorm. You can also choose one spell stunt you can perform for -1 SP when casting Fire Arcana spells."}
    {:label "Lore (Novice)"
-    :desc "You have studied hard. When you make a successful Intelligence test with a lore focus, the GM should give you an extra piece of information on the topic. A lore focus is any Intelligence focus with the word \"lore\" in it, such as Cultural Lore and Historical Lore. The GM determines the additional information and it may or may not be pertinent to the main question at hand."}]
+    :desc "You have studied hard. When you make a successful Intelligence test with a lore focus, the GM should give you an extra piece of information on the topic. A lore focus is any Intelligence focus with the word \"lore\" in it, such as Cultural Lore and Historical Lore. The GM determines the additional information and it may or may not be pertinent to the main question at hand."}
+   {:label "Two-Hander Style (Novice)"
+    :desc "The length of your weapon and the power of your attacks forces foes to yield ground. When you hit with a Melee Attack with a two-handed weapon, you can move the target 2 yards in any direction."}
+   {:label "Two-Hander Style (Journeyman)"
+    :desc "You can strike fearsome blows with your weapon. You can perform the Mighty Blow stunt for 1 stunt point instead of the usual 2 when wielding a two-handed weapon."}
+   {:label "Two-Hander Style (Master)"
+    :desc "You and your weapon are as one. When wielding a two-handed weapon, you can choose to re-roll your damage, but you must keep the results of the second roll."}
+   {:label "Weapon and Shield Style (Novice)"
+    :desc "You can use shields of all shapes and sizes. You get the full Defense bonus when using a shield."}
+   {:label "Weapon and Shield Style (Journeyman)"
+    :desc "You know how to get the most from your shield. You can perform the Defensive Stance stunt for 1 stunt point instead of the usual 2."}
+   {:label "Weapon and Shield Style (Master)"
+    :desc "Opponents must work hard to get by your defenses. The shield bonus of any shield you use increases by 1."}]
   :spells
   [{:name "Arcane Lantern"
     :time "Maj"
