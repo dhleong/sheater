@@ -314,7 +314,8 @@
                     :width (if desc?
                              "170px"
                              "150px")
-                    :attr {:auto-focus (= index 0)}
+                    :attr {:auto-focus (= index 0)
+                           :tab-index "1"}
                     :on-change
                     (fn [new-value]
                       (swap! new-row-value
@@ -325,10 +326,12 @@
       [:div.modal-footer
        [rc/button
         :label "Cancel"
+        :attr {:tab-index "3"}
         :on-click #(reset! show-prompt? false)]
        [rc/button
         :label "Add"
         :class "btn-primary"
+        :attr {:tab-index "2"}
         :on-click
         (fn []
           (let [new-row @new-row-value]
