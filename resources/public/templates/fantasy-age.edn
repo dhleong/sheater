@@ -220,11 +220,14 @@
      [:dynamic-table#melee-weapons
       {:cols ["Melee Weapon" "ATK Roll" "DMG Roll"]
        :items :$melee-weapons}]
-     [:dynamic-table#ranged-weapons
-      {:cols ["Ranged Weapon" "ATK Roll" "DMG Roll"
-              "Short Range" "Long Range"
-              "Reload Time"]
-       :items :$ranged-weapons}]]
+     [:rows
+      [:dynamic-table#ranged-weapons
+       {:cols ["Ranged Weapon" "ATK Roll" "DMG Roll"
+               "Short Range" "Long Range"
+               "Reload Time"]
+        :items :$ranged-weapons}]
+      [:consumables#consumables
+       {:label "Consumables"}]]]
     [:hr]
     [:cols
      [:table
@@ -252,16 +255,20 @@
   {:name "EQ"
    :spec
    [:cols
-    [:currency#currency
-     {:kinds
-      [{:label "Gold"
-        :id :gold
-        :value [10 :silver]}
-       {:label "Silver"
-        :id :silver
-        :value [10 :copper]}
-       {:label "Copper"
-        :id :copper}]}]
+    [:rows
+     [:currency#currency
+      {:kinds
+       [{:label "Gold"
+         :id :gold
+         :value [10 :silver]}
+        {:label "Silver"
+         :id :silver
+         :value [10 :copper]}
+        {:label "Copper"
+         :id :copper}]}]
+     [:hr]
+     [:consumables#consumables
+      {:label "Consumables"}]]
     [:inventory#carried
      {:label "Carried"}]]}
   {:name "Notes"

@@ -22,6 +22,7 @@
 
 (def widget-types
   (->> [[:checkbox `widg/checkbox]
+        [:consumables `widg/consumables]
         [:currency `widg/currency]
         [:input `widg/input]
         [:input-calc `widg/input-calc]

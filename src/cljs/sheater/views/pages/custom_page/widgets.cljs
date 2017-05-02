@@ -88,6 +88,17 @@
         [:div.hidden-md.hidden-lg.col-separator]
         child])]))
 
+(declare dynamic-table)
+(defn ^:export consumables
+  "An inventory containing consumable items, such as potions
+   or ammunition"
+  [opts]
+  {:pre [(:id opts)]}
+  [dynamic-table
+   {:id (:id opts)
+    :cols [(:label opts)
+           :amount]}])
+
 (defn ^:export currency
   "Renders a nice table of currency values and
    does math for you."
@@ -123,7 +134,7 @@
                 :on-change (fn [amount]
                              (write-state
                                id
-                               (assoc state (:id kind) (int amount))))
+                               (assoc state (:id kind) (js/parseInt amount))))
                 :validation-regex number-regex]])
             kinds)))]]))
 
@@ -147,13 +158,15 @@
   "input-calc is like a fancy input.number (or input.big-number)
    that when selected, pops up a calculator for easy editing."
   [opts]
-  {:pre [(:id opts)]}
+  {:pre [(or (:id opts)
+             (and (:model opts)
+                  (:on-change opts)))]}
   (let [id (:id opts)
         class (or (:class opts)
                   "number")
         regex (get-in input-class-spec ["number" :regex])
         show-calc? (reagent/atom false)]
-    (fn []
+    (fn [opts]
       [rc/popover-anchor-wrapper
        :showing? show-calc?
        :position :right-above
@@ -163,8 +176,12 @@
         :class class
         :width (or (:width opts)
                    (get-in input-class-spec [class :width]))
-        :model (or (str (->state id)) "")
-        :on-change (partial write-state id)
+        :model (str
+                 (or (:model opts)
+                     (->state id)
+                     ""))
+        :on-change (or (:on-change opts)
+                       (partial write-state id))
         :attr {:on-click
                (fn [e]
                  (.preventDefault e)
@@ -183,21 +200,24 @@
                :width "150px"
                :attr {:auto-focus true}
                :placeholder "+/- number"
-               :on-change (fn [v]
-                            (when-let [amount (js/parseInt v)]
-                              (reset! show-calc? false)
-                              (when-not (js/isNaN amount)
-                                ;; (println "CHANGE!" amount)
-                                (write-state
-                                  id (min
-                                       (:max opts 99999999)
-                                       (max
-                                         (:min opts 0)
-                                         (+ (js/parseInt (->state id))
-                                            amount)))))))
+               :on-change
+               (fn [v]
+                 (when-let [amount (js/parseInt v)]
+                   (reset! show-calc? false)
+                   (when-not (js/isNaN amount)
+                     ;; (println "CHANGE!" amount)
+                     (if id
+                       (write-state
+                         id (min
+                              (:max opts 99999999)
+                              (max
+                                (:min opts 0)
+                                (+ (js/parseInt (->state id))
+                                   amount))))
+                       (do (println "FORWARD-CHANGE!")
+                           ((:on-change opts) amount))))))
                :validation-regex #"[-+]?[0-9]*"]]]])))
 
-(declare dynamic-table)
 (defn ^:export inventory
   "A container for items"
   [opts]
@@ -276,15 +296,20 @@
             :tr
             (map-indexed
               (fn [index label]
-                (let [desc? (= :desc label)]
+                (let [desc? (= :desc label)
+                      amount? (= :amount label)]
                   [:th
-                   [(if desc?
-                      rc/input-textarea
-                      rc/input-text)
+                   [(cond
+                      desc? rc/input-textarea
+                      :else rc/input-text)
                     :model (nth @new-row-value index)
-                    :placeholder (if (= :desc label)
-                                   "Long Description"
-                                   (str label))
+                    :placeholder (cond
+                                   desc?  "Long Description"
+                                   amount? "Amount"
+                                   :else (str label))
+                    :validation-regex (when amount?
+                                        (get-in input-class-spec
+                                                ["number" :regex]))
                     :width (if desc?
                              "170px"
                              "150px")
@@ -325,7 +350,8 @@
                      (cons :tr
                            (concat
                              (map (fn [label]
-                                    [:th (when-not (= :desc label)
+                                    [:th (when-not
+                                           (#{:desc :amount} label)
                                            label)])
                                   columns)
                              [[:th]])))
@@ -335,7 +361,8 @@
                             columns))
         new-row-value (reagent/atom empty-new-row)
         mouse-over? (reagent/atom false)
-        desc-col (.indexOf columns :desc)]
+        desc-col (.indexOf columns :desc)
+        amount-col (.indexOf columns :amount)]
     (fn [opts]
       (let [items (->state id)
             auto-value (:value opts)
@@ -361,12 +388,32 @@
                   (concat
                     (map-indexed
                       (fn [col-index part]
-                        (if (= col-index desc-col)
+                        (cond
                           ; special :desc col is wrapped in an info button
+                          (= col-index desc-col)
                           [:td
                            [rc/info-button
                             :info part]]
+
+                          ; special :amount col
+                          (= col-index amount-col)
+                          [:td
+                           [input-calc
+                            {:model part
+                             :on-change
+                             (fn [delta]
+                               (write-state
+                                 id
+                                 (vec
+                                   (update-in
+                                     (vec items)
+                                     [(- i auto-value-count) amount-col]
+                                     (fn [old-value]
+                                       (+ (js/parseInt old-value)
+                                          (js/parseInt delta)))))))}]]
+
                           ; regular col
+                          :else
                           [:td part]))
                       item)
                     [[:td
