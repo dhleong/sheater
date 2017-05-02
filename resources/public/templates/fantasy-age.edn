@@ -78,7 +78,13 @@
    [{:label "Intimidation"
      :desc "Overawing others with physical presence and threats."}]}
   :talents
-  [{:label "Armor Training (Novice)"
+  [{:label "Alchemy (Novice)"
+    :desc "You know the basics of alchemy. You can make blast vials and thunder vials."}
+   {:label "Alchemy (Journeyman)"
+    :desc "You are at home in a laboratory. You can make  re vials and ice vials."}
+   {:label "Alchemy (Master)"
+    :desc "Your alchemical knowledge is vast. You can make acid vials and lighting vials."}
+   {:label "Armor Training (Novice)"
     :desc "You can wear leather and mail armor without suffering a penalty to Dexterity."}
    {:label "Armor Training (Journeyman)"
     :desc "You can wear plate armor without suffering a penalty to Dexterity."}
