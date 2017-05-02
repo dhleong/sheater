@@ -50,36 +50,131 @@
    {:label "Language: Elvish"}]
   :focuses
   {:com
-   [{:label "Persuasion"
+   [{:label "Animal Handling"
+     :desc "Interacting with and caring for animals."}
+    {:label "Persuasion"
      :desc "Convincing others to agree with you."}]
+   :dex
+   [{:label "Riding"
+     :desc "Directing a mount such as a horse or pony."}]
    :int
-   [{:label "Natural Lore"
-     :desc "Knowing natural flora and fauna."}
+   [{:label "Arcana: Earth"}
+    {:label "Arcana: Fire"}
+    {:label "Arcana: Healing"}
+    {:label "Evaluation"
+     :desc "Determining the value of goods and objets d’art."}
     {:label "Healing"
-     :desc "Aiding the wounded and sick."}]
+     :desc "Aiding the wounded and sick."}
+    {:label "Historical Lore"
+     :desc "Knowing important events and personalities from the past."}
+    {:label "Military Lore"
+     :desc "Knowing strategy, tactics, and famous applications thereof."}
+    {:label "Natural Lore"
+     :desc "Knowing natural flora and fauna."}]
    :per
    [{:label "Empathy"
-     :desc "Discerning the feelings and emotions of others."}]}
+     :desc "Discerning the feelings and emotions of others."}]
+   :str
+   [{:label "Intimidation"
+     :desc "Overawing others with physical presence and threats."}]}
   :talents
   [{:label "Chirurgy (Novice)"
     :desc "You have trained in the art of chirurgy and your aid is swift and sure. Heal is a minor action for you."}
    {:label "Contacts (Novice)"
     :desc "You can attempt to make a contact out of a NPC with a successful Communication (Persuasion) test. The GM will set the target number based on the likelihood of you knowing the NPC or having mutual friends. The more distant the NPC’s homeland or social class from yours, the more dif cult the test will be. A contact will be friendly to you, but won’t go out of the way to help you without additional motivation. You can’t make a contact out of a NPC who already dislikes you or is an enemy."}
+   {:label "Earth Arcana (Novice)"
+    :desc "You learn the spells Rock Blast and Stone Cloak."}
+   {:label "Earth Arcana (Journeyman)"
+    :desc "You learn the spell Earth Speed. You also gain the focus Intelligence (Earth Arcana)."}
+   {:label "Earth Arcana (Master)"
+    :desc "You learn the spell Earthquake. You can also choose one spell stunt you can perform for -1 SP when casting Earth Arcana spells."}
    {:label "Healing Arcana (Novice)"
-    :desc "You learn the spells Healing Touch and Revival"}]
+    :desc "You learn the spells Healing Touch and Revival"}
+   {:label "Healing Arcana (Journeyman)"
+    :desc "You learn the spell Healing Aura. You also gain the focus Intelligence (Healing Arcana)."}
+   {:label "Healing Arcana (Master)"
+    :desc "You learn the spell Restoration. You can also choose one spell stunt you can perform for -1 SP when casting Healing Arcana spells."}
+   {:label "Fire Arcana (Novice)"
+    :desc "You learn the spells Arcane Lantern and Flame Blast."}
+   {:label "Fire Arcana (Journeyman)"
+    :desc "You learn the spell Burning Shield. You also gain the focus Intelligence (Fire Arcana)."}
+   {:label "Fire Arcana (Master)"
+    :desc "You learn the spell Firestorm. You can also choose one spell stunt you can perform for -1 SP when casting Fire Arcana spells."}
+   {:label "Lore (Novice)"
+    :desc "You have studied hard. When you make a successful Intelligence test with a lore focus, the GM should give you an extra piece of information on the topic. A lore focus is any Intelligence focus with the word \"lore\" in it, such as Cultural Lore and Historical Lore. The GM determines the additional information and it may or may not be pertinent to the main question at hand."}]
   :spells
-  [{:name "Healing Touch"
+  [{:name "Arcane Lantern"
+    :time "Maj"
+    :cost "2mp/hr"
+    :tn 8
+    :desc "You illuminate the area around you with a steady light similar to that of a lantern. The spell illuminates a 10 yard radius centered on you. Arcane Lantern lasts for one hour, but can be extended for 2 MP per additional hour."
+    :req :fire-arcana-novice}
+   {:name "Burning Shield"
+    :time "Maj"
+    :cost "6mp"
+    :tn 12
+    :desc "You surround yourself with an aura of fire. Any adjacent enemy that makes a melee attack against you takes 2 penetrating damage. Burning shield lasts for a number of minutes equal to your Willpower."
+    :req :fire-arcana-journeyman}
+   {:name "Earthquake"
+    :time "Maj"
+    :cost "11+ mp"
+    :tn 17
+    :desc "The ground bucks and rolls in an area with a 6-yard radius anywhere you choose within 30 yards. Anyone caught in the area suffers a -2 penalty to Defense and a -5 penalty to Speed for one round. They must also succeed on a Dexterity (Acrobatics) test vs. your Spellpower or fall prone. This spell normally lasts for one round but for 5 MP, paid at the start of your subsequent turns as a free action, you may extend the duration by an additional round."
+    :req :earth-arcana-master}
+   {:name "Earth Speed"
+    :time "Maj"
+    :cost "6mp"
+    :tn 13
+    :desc "You let the earth swallow and transport you, re-emerging anywhere within 30 yards that you can see. You must be standing on dirt when you cast the spell and you must emerge from the dirt as well."
+    :req :earth-arcana-journeyman}
+   {:name "Firestorm"
+    :time "Maj"
+    :cost "11mp"
+    :tn 15
+    :desc "You create an explosive firestorm with a 4-yard radius anywhere within 50 yards of you. Anyone caught in the area takes 3d6+Willpower damage and may be knocked prone. Those who make a successful Dexterity (Acrobatics) test vs. your Spellpower remain standing."
+    :req :fire-arcana-master}
+   {:name "Flame Blast"
+    :time "Maj"
+    :cost "4mp"
+    :tn 12
+    :desc "Gouts of blazing fire erupt from your outstretched hands or arcane device, burning nearby targets. The flame blast is 8 yards long and 2 yards wide. Anyone hit by the blast takes 2d6+1 damage. Targets that make a successful Dexterity (Acrobatics) test vs. your Spellpower only take 1d6+1 damage."
+    :req :fire-arcana-novice}
+   {:name "Healing Aura"
+    :time "Maj"
+    :cost "3-9mp"
+    :tn 15
+    :desc "Waves of healing energy radiate from you and aid your nearby allies. You can pick a number of targets up to twice your Willpower, all of whom must be within 10 yards of you. All targets regain 1d6 Health per 3 MP you spend (to a maximum of 3d6 Health for 9 MP). You can designate yourself as one of the targets."
+    :req :healing-arcana-journeyman}
+   {:name "Healing Touch"
     :time "Maj"
     :cost "1-3mp"
     :tn 10
     :desc "Your touch seals wounds and restores vigor to one wounded target. You can choose to spend up to 3 MPs when you cast the spell. For each MP spent, the target gets back 1d6 Health. You can cast this on yourself."
     :req :healing-arcana-novice}
+   {:name "Restoration"
+    :time "1 min"
+    :cost "15mp"
+    :tn 17
+    :desc "You can restore a gravely injured character to health, though this spell takes 1 minute to cast and is thus most useful outside of combat encounters. You must remain adjacent to the target throughout the casting. If successful, the target regains Health equal to your Willpower × 10."
+    :req :healing-arcana-master}
    {:name "Revival"
     :time "Maj"
     :cost "5mp"
     :tn 14
     :desc "Your touch helps restore the grievously wounded or fallen. A dying character adjacent to you immediately regains 10 + their Constitution + your Willpower in Health. Since dying characters cannot take actions, you cannot cast this spell on yourself."
-    :req :healing-arcana-novice}]
+    :req :healing-arcana-novice}
+   {:name "Rock Blast"
+    :time "Maj"
+    :cost "4mp"
+    :tn 12
+    :desc "A blast of small rocks burst from your hand or arcane device at a visible enemy within 20 yards. They in ict 1d6 + Willpower penetrating damage and the target is knocked prone. If the target makes a successful Constitution (Stamina) test vs. your Spellpower, Rock blast only in icts 1d6 penetrating damage and the target remains standing."
+    :req :earth-arcana-novice}
+   {:name "Stone Cloak"
+    :time "1 min"
+    :cost "3mp"
+    :tn 10
+    :desc "Your clothing takes on the toughness of stone while remaining pliable. Stone cloak gives you an Armor Rating equal to your Willpower ability for 1 hour. If you are wearing regular armor, stone cloak has no effect. You can only cast this on yourself."
+    :req :earth-arcana-novice}]
   :melee-weapons
   [["Two-handed Axe" "Fgt" "3d6"]
    ["Fist" "Acc" "1d3"]]
