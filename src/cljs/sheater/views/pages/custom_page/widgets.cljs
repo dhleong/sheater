@@ -67,7 +67,8 @@
     [rc/checkbox
      :model (->state id)
      :on-change (partial write-state id)]
-    (let [checked? (:value opts)]
+    (let [checked? (when-let [value-fn (:value opts)]
+                     (value-fn))]
       [:i
        {:class (str
                  "zmdi zmdi-check"
@@ -365,7 +366,8 @@
         amount-col (.indexOf columns :amount)]
     (fn [opts]
       (let [items (->state id)
-            auto-value (:value opts)
+            auto-value (when-let [value-fn (:value opts)]
+                         (value-fn))
             auto-value-count (count auto-value)
             is-mouse-over? @mouse-over?]
         [:table

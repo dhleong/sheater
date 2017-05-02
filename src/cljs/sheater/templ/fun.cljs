@@ -11,6 +11,13 @@
     (deref (subscribe [:active-static]))
     k))
 
+(defn ^:export state->val
+  "Read state value"
+  [k]
+  (get
+    (deref (subscribe [:active-state]))
+    k))
+
 (defn ^:export ->number
   [to-coerce]
   (when to-coerce

@@ -8,7 +8,7 @@
             [re-com.core :as rc]
             [re-frame.core :refer [subscribe dispatch]]
             [sheater.views.pages.custom-page.widgets :as widg]
-            [sheater.templ.fun :refer [exposed-fn? $->val ->fun ->number]]))
+            [sheater.templ.fun :refer [exposed-fn? $->val state->val ->fun ->number]]))
 
 (declare translate inflate-value-fn)
 (def special-let-forms
@@ -142,7 +142,10 @@
            ; a single subscription
            `($->val ~static-key))
       \# (let [data-key (keyword (subs n 1))]
-           (get state data-key))
+           ; TODO can we ever just use the state?
+           ; does it matter, perf-wise? If not,
+           ; should we just stop passing along `state`?
+           `(state->val ~data-key))
       ; normal keyword;
       kw)))
 
@@ -163,15 +166,18 @@
   (cond
     (keyword? part) (inflate-value-fn-key page state part)
     (seq? part) (inflate-value-fn-seq page state part)
-    ;; (vector? part) `(sheater.templ.fun/exported-vector ~@(map (partial inflate-value-fn-part page state) part))
     (vector? part) (vec (map (partial inflate-value-fn-part page state) part))
     (exposed-fn? part) (->fun part)
     :else part))
 
 (defn inflate-value-fn
-  [page state {:keys [symbols?]} fun]
+  [page state {:keys [symbols? call?]} fun]
   ;; (js/console.log "INFLATE FUN:" (str fun))
-  (let [form (inflate-value-fn-part page state fun)]
+  (let [form (inflate-value-fn-part page state fun)
+        form (if call?
+               (concat ['fn []]
+                       [form])
+               form)]
     ;; (js/console.log (when symbols? "symbols") "->" (str form))
     (if symbols?
       form
@@ -238,10 +244,13 @@
   [page state {:keys [symbols?] :as opts} element]
   (when-let [[el arg children] (destructure-auto-input element)]
     (let [inflate-arg-part (partial inflate-value-fn page state opts)
+          inflate-callable-part (partial inflate-value-fn page state
+                                         (assoc opts
+                                                :call? true))
           arg (-> arg
                   (update-if :id inflate-arg-part)
                   (update-if :items inflate-arg-part)
-                  (update-if :value inflate-arg-part))]
+                  (update-if :value inflate-callable-part))]
       ; finally, let the right one in:
       (let [result  (if-let [factory (get widget-types el)]
                       (if symbols?
