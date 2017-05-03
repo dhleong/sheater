@@ -175,7 +175,7 @@
   ;; (js/console.log "INFLATE FUN:" (str fun))
   (let [form (inflate-value-fn-part page state fun)
         form (if call?
-               (concat ['fn []]
+               (concat ['fn* []]
                        [form])
                form)]
     ;; (js/console.log (when symbols? "symbols") "->" (str form))
