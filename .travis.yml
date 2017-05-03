@@ -3,5 +3,13 @@ before_install:
     - nvm install 6
 
 script:
-    - lein doo phantom test once
+    - lein do doo phantom test once, clean, cljsbuild once min, less once
+
+deploy:
+    provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_DEPLOY # Set in travis-ci.org dashboard
+    local_dir: resources/public
+    on:
+        branch: master
 
