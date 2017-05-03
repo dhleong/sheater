@@ -1,5 +1,8 @@
 language: clojure
 
+# Don't use the Travis Container-Based Infrastructure
+sudo: true
+
 before_script:
     - which phantomjs
     - phantomjs -v
