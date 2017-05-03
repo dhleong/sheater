@@ -1,7 +1,7 @@
 (ns sheater.views.pages.custom-page-test
   (:require [cljs.test :refer-macros [deftest testing is run-tests]]
-            [cljs.nodejs :as node]
-            [sheater.views.pages.custom-page :refer [render inflate-value-fn process-source]]))
+            [sheater.templ.fun :refer [->fun]]
+            [sheater.views.pages.custom-page :refer [render inflate-value-fn process-source eval-form]]))
 
 (deftest process-source-test
   (testing "Rename keyword-as-fn calls"
@@ -19,17 +19,12 @@
                   "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(a),"
                   "new cljs.core.Keyword(null,\"req\",\"req\",(-326448303)).cljs$core$IFn$_invoke$arity$1(b))"))))))
 
-(deftest render-test
-  #_(testing "FIXME new test"
-    (let [spec [:rows
-                [:cols
-                 [:table
-                  [:tr
-                   [:td "Name"]
-                   [:td [:input {:id :name
-                                 :type :text}]]]]]
-                 ]]
-      (is (= 0 (render spec nil))))))
+(deftest eval-form-test
+  (testing "Run exposed fun"
+    (is (= :im-a-keyword
+           (eval-form
+             `(~(->fun (symbol "keyword"))
+              "im-a-keyword"))))))
 
 (deftest inflate-value-fn-test
   (testing "Inflate static refs"
@@ -37,8 +32,6 @@
           state nil
           opts {:symbols? true}
           form [:div :$melee-weapons]]
-      (try
-        (inflate-value-fn page state opts form)
-        (catch :default e
-          (println (.-stack e)))))
-    #_(is (nil? (inflate-value-fn page state opts form)))))
+      (is (= [:div
+              `(sheater.templ.fun/$->val :melee-weapons)]
+             (inflate-value-fn page state opts form))))))

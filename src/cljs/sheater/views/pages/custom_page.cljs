@@ -201,7 +201,7 @@
         body (translate page state {:symbols? true} body)]
     (when (> (count bindings) 2)
       (js/console.warn "(for ", (str bindings), " ...)", (count bindings))
-      (cljs.pprint/pprint bindings))
+      #_(cljs.pprint/pprint bindings))
     (let [evald (eval-form
                   #_(for ~bindings
                      ~body)

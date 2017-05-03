@@ -67,7 +67,7 @@
                               "externs/sheater.js"]}}
 
     {:id           "test"
-     :source-paths ["src/clj" "src/cljc" "src/cljs"]
+     :source-paths ["src/clj" "src/cljc" "src/cljs" "test/cljs"]
      :compiler     {:main          sheater.runner
                     :output-to     "resources/public/js/compiled/test.js"
                     :output-dir    "resources/public/js/compiled/test/out"

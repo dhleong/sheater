@@ -1,11 +1,10 @@
 (ns sheater.templ.fun-test
   (:require [cljs.test :refer-macros [deftest testing is run-tests]]
-            [cljs.nodejs :as node]
             [sheater.templ.fun :refer [->fun]]))
 
 (deftest ->fun-test
-  (testing "Run exposed fun"
-    (is (= :im-a-keyword
-           ((->fun (symbol "keyword"))
-            "im-a-keyword")))))
+  (testing "Get exposed fun"
+    (let [fun (->fun (symbol "keyword"))]
+      (is (not (nil? fun)))
+      (is (= "exported-keyword" (name fun))))))
 
