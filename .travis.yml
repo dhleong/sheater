@@ -1,9 +1,14 @@
 language: clojure
-before_install:
-    - nvm install 6
+
+before_script:
+    - which phantomjs
+    - phantomjs -v
+    - lein cljsbuild test
 
 script:
     - lein doo phantom test once
+
+after_success:
     - lein do clean, cljsbuild once min, less once
 
 deploy:

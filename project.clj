@@ -21,6 +21,8 @@
   :figwheel {:css-dirs ["resources/public/css"]
              :server-port 8080}
 
+  :doo {:build "test"}
+
   :test-paths ["test/cljs"]
 
   :less {:source-paths ["resources/public/css"]
