@@ -4,8 +4,6 @@ language: clojure
 sudo: true
 
 before_script:
-    - which phantomjs
-    - phantomjs -v
     - lein cljsbuild test
 
 script:
