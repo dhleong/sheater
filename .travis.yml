@@ -3,7 +3,8 @@ before_install:
     - nvm install 6
 
 script:
-    - lein do doo phantom test once, clean, cljsbuild once min, less once
+    - lein doo phantom test once
+    - lein do clean, cljsbuild once min, less once
 
 deploy:
     provider: pages
