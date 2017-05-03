@@ -15,7 +15,10 @@ except ImportError:
     print "!! A $GITHUB_TOKEN env variable will also work."
     exit(1)
 
-# TODO unit tests, possibly github releases, tags, etc.
+# TODO possibly github releases, tags, etc.
+
+# verify tests
+verify(Execute("lein doo phantom test once")).succeeds(silent=False).orElse(die())
 
 commitHash = Execute("git rev-parse --short HEAD").output().strip()
 ghPagesCommit = "Auto-generated deploy of %s" % commitHash

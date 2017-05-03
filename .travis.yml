@@ -1,0 +1,7 @@
+language: clojure
+before_install:
+    - nvm install 6
+
+script:
+    - lein doo phantom test once
+
