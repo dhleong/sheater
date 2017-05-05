@@ -13,6 +13,11 @@
    (:active-panel db)))
 
 (reg-sub
+  :any-loading?
+  (fn [db]
+    (-> db :loading-providers count)))
+
+(reg-sub
   :provider
   (fn [db [_ provider-id]]
     (-> db :providers provider-id)))

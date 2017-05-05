@@ -235,7 +235,10 @@
   [[id page]]
   (let [showing-import? (reagent/atom false)]
     (fn [[id page]]
-      (let [info @(subscribe [:sheet id])]
-        (if info
-          [render-editor page info showing-import?]
-          [four-oh-four])))))
+      (let [info @(subscribe [:sheet id])
+            any-loading? @(subscribe [:any-loading?])]
+        (cond
+          info [render-editor page info showing-import?]
+          any-loading? [rc/throbber
+                        :size :large]
+          :else [four-oh-four])))))

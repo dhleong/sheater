@@ -56,6 +56,7 @@
   (println "signed-in? <-" signed-in?)
   (dispatch [:assoc-provider! :gapi :ready? signed-in?])
   (when signed-in?
+    (dispatch [:mark-loading! :gapi true])
     (-> js/gapi.client.drive.files
         (.list #js {:pageSize 50
                     :spaces "appDataFolder"
@@ -76,7 +77,8 @@
                        (->sheet (:id raw-file)
                                 (:name raw-file)))))]
     (println "Found: " files)
-    (dispatch [:add-sheets files])))
+    (dispatch [:add-sheets files])
+    (dispatch [:mark-loading! :gapi false])))
 
 (defn- on-client-init
   []

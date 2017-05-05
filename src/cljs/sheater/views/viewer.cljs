@@ -75,7 +75,10 @@
 
 (defn panel
   [[id page]]
-  (let [info @(subscribe [:sheet id])]
-    (if info
-      [render-sheet page info]
-      [four-oh-four])))
+  (let [info @(subscribe [:sheet id])
+        any-loading? @(subscribe [:any-loading?])]
+    (cond
+      info [render-sheet page info]
+      any-loading? [rc/throbber
+                    :size :large]
+      :else [four-oh-four])))

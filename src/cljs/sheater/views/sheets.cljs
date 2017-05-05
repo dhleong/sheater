@@ -59,7 +59,8 @@
   []
   (let [confirming-sheet-delete (reagent/atom nil)]
     (fn []
-      (let [sheets @(subscribe [:sheets])]
+      (let [sheets @(subscribe [:sheets])
+            any-loading? @(subscribe [:any-loading?])]
         [rc/v-box
          :height "100%"
          :children
@@ -72,10 +73,12 @@
              :label "Pick a sheet"
              :level :level4]
             (when-not (seq sheets)
-              [:div "No sheets created. "
-               [rc/hyperlink-href
-                :label "Create one now!"
-                :href "#/sheet/create"]])
+              (if any-loading?
+                [:div "Loading..."]
+                [:div "No sheets created. "
+                 [rc/hyperlink-href
+                  :label "Create one now!"
+                  :href "#/sheet/create"]]))
             (when (seq sheets)
               [:table.table.table-striped.table-hover
                [:tbody

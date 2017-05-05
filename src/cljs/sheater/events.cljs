@@ -13,6 +13,14 @@
  (fn  [_ _]
    db/default-db))
 
+(reg-event-db
+  :mark-loading!
+  [(path :loading-providers) trim-v]
+  (fn [providers [provider-id loading?]]
+    (if loading?
+      (conj providers provider-id)
+      (disj providers provider-id))))
+
 (reg-event-fx
   :navigate!
   [trim-v]

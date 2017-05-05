@@ -13,14 +13,17 @@
 ;; main
 
 (defn- panels [panel-name & [args]]
-  (case panel-name
-    :home-panel [home/panel]
-    :provider-panel [provider/panel args]
-    :sheets [sheets/panel]
-    :sheet/create [create/panel]
-    :viewer [viewer/panel args]
-    :editor [editor/panel args]
-    [:div "Oops! Unknown panel:" panel-name]))
+  (if panel-name
+    (case panel-name
+      :home-panel [home/panel]
+      :provider-panel [provider/panel args]
+      :sheets [sheets/panel]
+      :sheet/create [create/panel]
+      :viewer [viewer/panel args]
+      :editor [editor/panel args]
+      [:div "Oops! Unknown panel:" panel-name])
+    [rc/throbber
+     :size :large]))
 
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])]
