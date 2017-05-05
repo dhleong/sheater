@@ -114,30 +114,28 @@
         number-regex (get-in input-class-spec ["big-number" :regex])]
     [:table
      [:tbody
-      (vec
-        (cons
-          :tr
-          (map
-            (fn [kind]
-              [:th (:label kind)])
-            kinds)))
-      (vec
-        (cons
-          :tr
-          (map
-            (fn [kind]
-              [:td
-               [rc/input-text
-                :class "number"
-                :style {:padding "0px"}
-                :width number-width
-                :model (str (or (get state (:id kind)) "0"))
-                :on-change (fn [amount]
-                             (write-state
-                               id
-                               (assoc state (:id kind) (js/parseInt amount))))
-                :validation-regex number-regex]])
-            kinds)))]]))
+      (into
+        [:tr]
+        (map
+          (fn [kind]
+            [:th (:label kind)])
+          kinds))
+      (into
+        [:tr]
+        (map
+          (fn [kind]
+            [:td
+             [rc/input-text
+              :class "number"
+              :style {:padding "0px"}
+              :width number-width
+              :model (str (or (get state (:id kind)) "0"))
+              :on-change (fn [amount]
+                           (write-state
+                             id
+                             (assoc state (:id kind) (js/parseInt amount))))
+              :validation-regex number-regex]])
+          kinds))]]))
 
 (defn ^:export input
   "Basic text input widget"
@@ -292,37 +290,36 @@
 
         ;; manual input:
         header-row
-        (vec
-          (cons
-            :tr
-            (map-indexed
-              (fn [index label]
-                (let [desc? (= :desc label)
-                      amount? (= :amount label)]
-                  [:th
-                   [(cond
-                      desc? rc/input-textarea
-                      :else rc/input-text)
-                    :model (nth @new-row-value index)
-                    :placeholder (cond
-                                   desc?  "Long Description"
-                                   amount? "Amount"
-                                   :else (str label))
-                    :validation-regex (when amount?
-                                        (get-in input-class-spec
-                                                ["number" :regex]))
-                    :width (if desc?
-                             "170px"
-                             "150px")
-                    :attr {:auto-focus (= index 0)
-                           :tab-index "1"}
-                    :on-change
-                    (fn [new-value]
-                      (swap! new-row-value
-                             assoc
-                             index
-                             new-value))]]))
-              columns)))]]
+        (into
+          [:tr]
+          (map-indexed
+            (fn [index label]
+              (let [desc? (= :desc label)
+                    amount? (= :amount label)]
+                [:th
+                 [(cond
+                    desc? rc/input-textarea
+                    :else rc/input-text)
+                  :model (nth @new-row-value index)
+                  :placeholder (cond
+                                 desc?  "Long Description"
+                                 amount? "Amount"
+                                 :else (str label))
+                  :validation-regex (when amount?
+                                      (get-in input-class-spec
+                                              ["number" :regex]))
+                  :width (if desc?
+                           "170px"
+                           "150px")
+                  :attr {:auto-focus (= index 0)
+                         :tab-index "1"}
+                  :on-change
+                  (fn [new-value]
+                    (swap! new-row-value
+                           assoc
+                           index
+                           new-value))]]))
+            columns))]]
       [:div.modal-footer
        [rc/button
         :label "Cancel"
@@ -351,19 +348,19 @@
         choices (:items opts)
         columns (:cols opts)
         show-prompt? (reagent/atom false)
-        header-row (vec
-                     (cons :tr
-                           (concat
-                             (map (fn [label]
-                                    [:th (when-not
-                                           (#{:desc :amount} label)
-                                           label)])
-                                  columns)
-                             [[:th]])))
+        header-row (into
+                     [:tr]
+                     (concat
+                       (map (fn [label]
+                              [:th (when-not
+                                     (#{:desc :amount} label)
+                                     label)])
+                            columns)
+                       [[:th]]))
         empty-new-row (vec
-                          (map
-                            (constantly "")
-                            columns))
+                        (map
+                          (constantly "")
+                          columns))
         new-row-value (reagent/atom empty-new-row)
         mouse-over? (reagent/atom false)
         desc-col (.indexOf columns :desc)
@@ -388,57 +385,56 @@
             (with-meta
               ; complicated fanciness to build:
               ; [:tr [:td ...] [:td [:delete-button]]]
-              (vec
-                (cons
-                  :tr
-                  (concat
-                    (map-indexed
-                      (fn [col-index part]
-                        (cond
-                          ; special :desc col is wrapped in an info button
-                          (= col-index desc-col)
-                          [:td
-                           [rc/info-button
-                            :info part]]
+              (into
+                [:tr]
+                (concat
+                  (map-indexed
+                    (fn [col-index part]
+                      (cond
+                        ; special :desc col is wrapped in an info button
+                        (= col-index desc-col)
+                        [:td
+                         [rc/info-button
+                          :info part]]
 
-                          ; special :amount col
-                          (= col-index amount-col)
-                          [:td
-                           [input-calc
-                            {:model part
-                             :on-change
-                             (fn [delta]
-                               (write-state
-                                 id
-                                 (vec
-                                   (update-in
-                                     (vec items)
-                                     [(- i auto-value-count) amount-col]
-                                     (fn [old-value]
-                                       (+ (js/parseInt old-value)
-                                          (js/parseInt delta)))))))}]]
-
-                          ; regular col
-                          :else
-                          [:td part]))
-                      item)
-                    [[:td
-                      (when (>= i auto-value-count)
-                        [rc/row-button
-                         :md-icon-name "zmdi-delete"
-                         :mouse-over-row? is-mouse-over?
-                         :on-click
-                         (fn [row]
-                           (when-let [idx (if-let [i (.indexOf items item)]
-                                            (when (not= -1 i) i))]
-                             ; remove the first instance of the item from the
-                             ; items vector
+                        ; special :amount col
+                        (= col-index amount-col)
+                        [:td
+                         [input-calc
+                          {:model part
+                           :on-change
+                           (fn [delta]
                              (write-state
                                id
                                (vec
-                                 (concat
-                                   (subvec items 0 idx)
-                                   (subvec items (inc idx)))))))])]])))
+                                 (update-in
+                                   (vec items)
+                                   [(- i auto-value-count) amount-col]
+                                   (fn [old-value]
+                                     (+ (js/parseInt old-value)
+                                        (js/parseInt delta)))))))}]]
+
+                        ; regular col
+                        :else
+                        [:td part]))
+                    item)
+                  [[:td
+                    (when (>= i auto-value-count)
+                      [rc/row-button
+                       :md-icon-name "zmdi-delete"
+                       :mouse-over-row? is-mouse-over?
+                       :on-click
+                       (fn [row]
+                         (when-let [idx (if-let [i (.indexOf items item)]
+                                          (when (not= -1 i) i))]
+                           ; remove the first instance of the item from the
+                           ; items vector
+                           (write-state
+                             id
+                             (vec
+                               (concat
+                                 (subvec items 0 idx)
+                                 (subvec items (inc idx)))))))])]]))
               {:key (first item)}))
 
           ;; Allow new inputs:

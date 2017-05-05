@@ -49,13 +49,12 @@
     [:div.navbar-collapse.collapse.navbar-responsive-collapse
      ;
      (when-let [buttons (:buttons opts)]
-       (vec
-         (cons
-           :ul.nav.navbar-nav.navbar-right
-           (map
-             (fn [b]
-               [:li b])
-             buttons))))]]])
+       (into
+         [:ul.nav.navbar-nav.navbar-right]
+         (map
+           (fn [b]
+             [:li b])
+           buttons)))]]])
 
 (defn action-button
   "Drop-in replacement for rc/hyperlink for use in the header-bar"
