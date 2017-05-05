@@ -103,8 +103,36 @@
     max-width: 250px;
 }
 
-.search-bar .rc-input-text {
-    flex-grow: 1 !important;
+.search-bar {
+    .clearable-input {
+        max-width: 250px;
+    }
+
+    .rc-input-text {
+        flex-grow: 1 !important;
+    }
+}
+
+.clearable-input {
+    position: relative;
+
+    .search-bar & {
+        flex-grow: 1;
+    }
+
+    .clear-button {
+        position: absolute;
+        right: 0;
+
+        // hax: these are borrowed from the bootstrap theme
+        bottom: 0.4375rem;
+        margin-bottom: 2px; // the bottom border
+        color: rgba(0,0,0,.54);
+    }
+
+    input.form-control {
+        margin-right: 1em;
+    }
 }
 
 input.number, input.big-number {

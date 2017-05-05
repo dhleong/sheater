@@ -3,7 +3,8 @@
   sheater.views.pages.notes-page
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [re-com.core :as rc]))
+            [re-com.core :as rc]
+            [sheater.widgets :as widg]))
 
 (def tag-regex #"(#([a-zA-Z0-9_-]+))")
 
@@ -137,7 +138,8 @@
            :on-click
            (fn []
              (reset! editing-note :new))]
-          [rc/input-text
+          [widg/clearable-input-text
+           :attr {:id "notes-search"}
            :class "search"
            :width "auto"
            :model current-filter
