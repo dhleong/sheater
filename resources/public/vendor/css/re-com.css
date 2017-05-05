@@ -879,38 +879,6 @@ html, body {
 }
 
 /*----------------------------------------------------------------------------------------
-  Custom scrollbars
-   - http://css-tricks.com/custom-scrollbars-in-webkit
-   - http://codemug.com/html/custom-scrollbars-using-css
-----------------------------------------------------------------------------------------*/
-
-::-webkit-scrollbar {
-  width: 10px;
-  border-radius: 5px;
-  background-color: rgba(0,0,0,0.05);
-  }
-::-webkit-scrollbar:horizontal {
-  height:10px;
-  }
-::-webkit-scrollbar:hover {
-  background-color:rgba(0,0,0,0.20);
-  }
-::-webkit-scrollbar-thumb:horizontal, ::-webkit-scrollbar-thumb:vertical {
-  background:rgba(0,0,0,0.25);
-  border-radius: 5px;
-  }
-::-webkit-scrollbar-thumb:horizontal:active, ::-webkit-scrollbar-thumb:vertical:active {
-  background:rgba(0,0,0,0.45);
-  }
-
-/* Color of selected text*/
-/*
-::-moz-selection { color: gold;  background: red; }
-::selection      { color: gold;  background: red; }
-*/
-
-
-/*----------------------------------------------------------------------------------------
   Override bootstrap input text placeholder color (it's too dark)
 ----------------------------------------------------------------------------------------*/
 
