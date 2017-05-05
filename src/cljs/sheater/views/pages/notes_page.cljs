@@ -87,14 +87,16 @@
       [:div.card
        {:on-mouse-over #(reset! mouse-over? true)
         :on-mouse-out #(reset! mouse-over? false)}
-       [rc/h-box
-        :gap ".5em"
+       [rc/v-box
+        :class "card-contents"
         :children
-        [[rc/v-box
-          :children
-          [(:body note)
-           [tag-cloud filter-atom (:tags note)]]]
-         [rc/row-button
+        [(:body note)
+         [tag-cloud filter-atom (:tags note)]]]
+       [rc/h-box
+        :class "card-buttons"
+        :gap "1em"
+        :children
+        [[rc/row-button
           :mouse-over-row? @mouse-over?
           :md-icon-name "zmdi-edit"
           :on-click
@@ -125,6 +127,8 @@
        [(when-let [editing @editing-note]
           [edit-note-dialog editing-note editing])
         [rc/h-box
+         :style {:width "100%"}
+         :class "search-bar"
          :gap "1em"
          :children
          [[rc/button
@@ -134,6 +138,8 @@
            (fn []
              (reset! editing-note :new))]
           [rc/input-text
+           :class "search"
+           :width "auto"
            :model current-filter
            :placeholder "Search"
            :change-on-blur? false
