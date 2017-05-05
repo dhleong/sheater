@@ -12,9 +12,11 @@
 
 (def input-class-spec
   {"number" {:regex #"^[0-9]*$"
-             :width "4em"}
+             :width "4em"
+             :type "number"}
    "big-number" {:regex #"^[0-9]*$"
-                 :width "7em"}})
+                 :width "7em"
+                 :type "number"}})
 
 ;;
 ;; Utils
@@ -127,6 +129,7 @@
             [:td
              [rc/input-text
               :class "number"
+              :attr {:type "number"}
               :style {:padding "0px"}
               :width number-width
               :model (str (or (get state (:id kind)) "0"))
@@ -143,8 +146,10 @@
   {:pre [(:id opts)]}
   (let [id (:id opts)
         class (:class opts)
-        regex (get-in input-class-spec [class :regex])]
+        regex (get-in input-class-spec [class :regex])
+        input-type (get-in input-class-spec [class :type])]
     [rc/input-text
+     :attr {:type input-type}
      :class class
      :style {:padding "0px"}
      :width (or (:width opts)
@@ -195,6 +200,7 @@
 
         :body
         [:div [rc/input-text
+               :attr {:type "number"}
                :model ""
                :width "150px"
                :attr {:auto-focus true}
@@ -312,7 +318,9 @@
                            "170px"
                            "150px")
                   :attr {:auto-focus (= index 0)
-                         :tab-index "1"}
+                         :tab-index "1"
+                         :type (when amount?
+                                 "number")}
                   :on-change
                   (fn [new-value]
                     (swap! new-row-value
