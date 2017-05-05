@@ -9,10 +9,12 @@
   [opts]
   [:nav.navbar.navbar-default
    [:div.container
-    [:div.navbar-header
-     [:div.navbar-brand
-      (let [header (:header opts)
-            up-url (:<-up-to opts)]
+    (let [header (:header opts)
+          up-url (:<-up-to opts)]
+      [:div.navbar-header
+       {:class (when up-url
+                 "has-up")}
+       [:div.navbar-brand
         (if up-url
           ; fancy case:
           [rc/hyperlink
@@ -24,7 +26,7 @@
                        (.preventDefault e)
                        (dispatch [:navigate! up-url]))]
           ; simple case:
-          header))]]
+          header)]])
     (when-let [tabs (:tabs opts)]
       [:ul.nav.navbar-nav.nav-tabs
        (for [t tabs]

@@ -15,6 +15,19 @@
 
     .navbar-header {
         float: left;
+
+        &.has-up  {
+            margin-right: 1em;
+            margin-left: -5px;
+
+            // hack to make the up button render "normally" on desktops
+            // (basically the bootstrap thing, but modified and put
+            //  here to override our override above)
+            @media(min-width: 768px) {
+                margin-right: 0;
+                margin-left: 0;
+            }
+        }
     }
 
     .navbar-brand {
@@ -70,6 +83,7 @@
 
 .editor {
     font-family: monospace;
+    min-width: 50%;
 }
 
 .cols-item {

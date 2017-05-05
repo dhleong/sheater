@@ -81,7 +81,7 @@
              [rc/input-textarea
               :model (prettify page)
               :class "editor"
-              :width "50%"
+              :width "auto"
               :rows 20
               :change-on-blur? false
               :on-change
@@ -112,7 +112,7 @@
         [rc/input-textarea
          :model (prettify @static-data)
          :class "editor"
-         :width "50%"
+         :width "auto"
          :rows 20
          :change-on-blur? false
          :on-change
@@ -207,7 +207,7 @@
           (cons
             {:url (str "#/edit/" (name (:id info)) "/$static")
              :active? (= "$static" page)
-             :label "Static Data"}
+             :label "$data"}
             (map
               (fn [p]
                 {:url (str "#/edit/" (name (:id info)) "/" (:name p))
