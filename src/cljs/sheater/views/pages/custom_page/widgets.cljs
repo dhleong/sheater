@@ -200,10 +200,10 @@
 
         :body
         [:div [rc/input-text
-               :attr {:type "number"}
+               :attr {:type "number"
+                      :auto-focus true}
                :model ""
                :width "150px"
-               :attr {:auto-focus true}
                :placeholder "+/- number"
                :on-change
                (fn [v]
