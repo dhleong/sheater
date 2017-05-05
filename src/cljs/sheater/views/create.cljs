@@ -68,7 +68,7 @@
     (do
       (println "LOAD" template-id "@" template-file)
       (reset! creating? :loading-template)
-      (GET (str "/templates/" template-file)
+      (GET (str "templates/" template-file)
            {:response-format :text
             :error-handler
             (fn [e]
