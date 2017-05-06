@@ -7,7 +7,7 @@
 
 (defn header-bar
   [opts]
-  [:nav.navbar.navbar-default
+  [:nav.navbar.navbar-dark
    [:div.container
     (let [header (:header opts)
           up-url (:<-up-to opts)]

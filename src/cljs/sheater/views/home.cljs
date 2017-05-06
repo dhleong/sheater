@@ -8,7 +8,7 @@
 
 (defn provider-picker
   []
-  [:div.container
+  [:div.container.card
    [rc/v-box
     :children
     [(when @(subscribe [:sheets])

@@ -152,7 +152,7 @@
          :children
          [[header-bar
            {:header "New Sheet"}]
-          [:div.container
+          [:div.container.card
            [:form
             {:on-submit (fn [e] (.preventDefault e))}
             [rc/h-box

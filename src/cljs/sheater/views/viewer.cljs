@@ -65,13 +65,17 @@
                        (name (:id info))
                        "/"
                        page)]]}]
-        [:div.container
-         [render-page
-         (->> data
-              :pages
-              (filter (comp (partial = page) :name))
-              first)
-         @(subscribe [:active-state])]]])]))
+        (let [page
+              (->> data
+                   :pages
+                   (filter (comp (partial = page) :name))
+                   first)]
+          [:div.container
+           {:class (when-not (= :notes (:type page))
+                     "card")}
+           [render-page
+            page
+            @(subscribe [:active-state])]])])]))
 
 (defn panel
   [[id page]]

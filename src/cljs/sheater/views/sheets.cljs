@@ -67,7 +67,7 @@
          [[title]
           (when-let [sheet @confirming-sheet-delete]
             [delete-confirm confirming-sheet-delete sheet])
-          [:div.container
+          [:div.container.card
            [:div.sheets
             [rc/title
              :label "Pick a sheet"

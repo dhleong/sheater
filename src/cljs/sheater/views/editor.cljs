@@ -189,7 +189,11 @@
   (let [data (:data info)
         page (or page
                  (when data
-                   (-> data :pages first :name)))]
+                   (-> data :pages first :name)))
+        page-info (->> data
+                       :pages
+                       (filter (comp (partial = page) :name))
+                       first)]
     (when-not data
       ; don't got it? get it!
       (dispatch [:refresh! (:id info)]))
@@ -227,6 +231,8 @@
         (when @showing-import?
           [import-overlay showing-import?])
         [:div.container
+         {:class (when-not (= :notes (:type page-info))
+                   "card")}
          (if (= "$static" page)
            [render-static-editor (:id info)]
            [render-page-editor (:id info) page])]])]))
