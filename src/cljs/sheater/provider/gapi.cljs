@@ -163,26 +163,38 @@
     upload-type metadata content
     (fn [resp]
       (let [error (.-error resp)]
-        (println "upload-data ERROR:" error)
-        (if (and error
-                 (= 401 (.-code error)))
+        (cond
+          (and error
+               (= 401 (.-code error)))
           ; refresh creds and retry
-          (js/gapi.auth.authorize
-            #js {:client_id client-id
-                 :scope scopes
-                 :immediate true}
-            (fn [refresh-resp]
-              (if (.-error refresh-resp)
-                (do
-                  (println "Auth refresh failed:" refresh-resp)
-                  (on-complete resp))
-                (do
-                  (println "Auth refreshed:" refresh-resp)
-                  (upload-data
-                    upload-type metadata content
-                    on-complete)))))
+          (do
+            (js/console.log "Refreshing auth before retrying upload...")
+            (js/gapi.auth.authorize
+              #js {:client_id client-id
+                   :scope scopes
+                   :immediate true}
+              (fn [refresh-resp]
+                (if (.-error refresh-resp)
+                  (do
+                    ;; TODO notify?
+                    (js/console.warn "Auth refresh failed:" refresh-resp)
+                    (on-complete resp))
+                  (do
+                    (js/console.log "Auth refreshed! Retrying upload...")
+                    (upload-data
+                      upload-type metadata content
+                      (fn [resp]
+                        (if (.-error resp)
+                          (do
+                            (js/console.error "Even after auth refresh, upload failed: " resp)
+                            (on-complete nil))
+                          (on-complete resp)))))))))
+          ; unexpected error:
+          error (do
+                  (js/console.error "upload-data ERROR:" error)
+                  (on-complete nil))
           ; no problem; pass it along
-          (on-complete resp))))))
+          :else (on-complete resp))))))
 
 (deftype GapiProvider []
   IProvider
@@ -207,13 +219,18 @@
               {:name "Notes"
                :type :notes}]})))
       (fn [response]
-        (println "CREATED:" response)
-        (let [id (-> response
-                     (js->clj :keywordize-keys true)
-                     :id)]
-          (on-complete
-            (->sheet id
-                     (:name info)))))))
+        (if response
+          (let [id (-> response
+                       (js->clj :keywordize-keys true)
+                       :id)]
+            (when js/goog.DEBUG
+              (println "CREATED:" response))
+            (on-complete
+              (->sheet id
+                       (:name info))))
+          (do
+            ;; TODO: notify user
+            (js/console.error "Failed to create sheet"))))))
   ;
   (delete-sheet [this info]
     (println "Delete " (:gapi-id info))
@@ -235,6 +252,7 @@
                    (when-let [data (edn/read-string body)]
                      (on-complete data))))
                (fn [e]
+                 ;; TODO
                  (println "ERROR listing files" e)))))
   ;
   (save-sheet [this info]
@@ -246,4 +264,6 @@
        :mimeType "application/json"}
       (str (:data info))
       (fn [response]
-        (println "SAVED!" response)))))
+        (if response
+          (println "SAVED!" response)
+          (js/console.error "Failed to save sheet"))))))
