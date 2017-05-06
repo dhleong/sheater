@@ -62,6 +62,15 @@
        :items
        (map ensure-id)))
 
+(defn ->vector
+  "Coerce v to a vector if it isn't already one. nil values
+   become an empty vector"
+  [v]
+  (cond
+    (nil? v) []
+    (vector? v) v
+    :else (vec v)))
+
 (defn write-state
   [k v]
   (println "write-state:" k " <- " v)
@@ -283,7 +292,7 @@
         (when choices
           [:tr
            [:td {:colSpan (count columns)
-                 :text-align :center}
+                 :style {:text-align :center}}
             [rc/single-dropdown
              :choices (map
                         (fn [item]
@@ -356,7 +365,7 @@
           (let [new-row @new-row-value]
             (reset! show-prompt? false)
             (reset! new-row-value empty-new-row)
-            (write-state id (conj items new-row))))]]]]]])
+            (write-state id (conj (->vector items) new-row))))]]]]]])
 
 (defn ^:export dynamic-table
   "A dynamic table is one whose values are added in a dialog, for
@@ -388,7 +397,7 @@
         desc-col (.indexOf columns :desc)
         amount-col (.indexOf columns :amount)]
     (fn [opts]
-      (let [items (->state id)
+      (let [items (->vector (->state id))
             auto-value (when-let [value-fn (:value opts)]
                          (value-fn))
             auto-value-count (count auto-value)
