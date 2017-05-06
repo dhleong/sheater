@@ -15,7 +15,11 @@
 (reg-sub
   :any-loading?
   (fn [db]
-    (-> db :loading-providers count)))
+    (println (count (:loading-providers db)))
+    (-> db
+        :loading-providers
+        count
+        (> 0))))
 
 (reg-sub
   :provider

@@ -8,6 +8,7 @@
 (defn connect-gapi
   []
   [rc/button
+   :class "btn-raised btn-primary"
    :label "Connect Google Account"
    :on-click signin!])
 

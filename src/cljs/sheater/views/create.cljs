@@ -142,74 +142,99 @@
                       (catch :default e
                         (println "Validation failed:" e)))))]
     (fn []
-      [rc/v-box
-       :height "100%"
-       :children
-       [[header-bar
-         {:header "New Sheet"}]
-        [:div.container
-         [:form
-          {:on-submit (fn [e] (.preventDefault e))}
-          [rc/h-box
-           :children
-           [[rc/v-box
-             :gap ".5em"
+      (let [provider-id (:provider @sheet-state)
+            provider-state @(subscribe [:provider provider-id])
+            provider-info (-> providers provider-id)
+            provider-loading? (nil? provider-state)
+            provider-ready? (:ready? provider-state)]
+        [rc/v-box
+         :height "100%"
+         :children
+         [[header-bar
+           {:header "New Sheet"}]
+          [:div.container
+           [:form
+            {:on-submit (fn [e] (.preventDefault e))}
+            [rc/h-box
              :children
-             [[rc/label :label "Storage Provider"]
-              ;
-              [rc/single-dropdown
-               :choices (vals providers)
-               :model default-provider
-               :label-fn :name
-               :placeholder "Storage Provider"
-               :width "200px"
-               :on-change (partial set-key! :provider)]
-              ;
-              [rc/gap :size "1em"]
-              [rc/label :label "Sheet Name"]
-              [rc/input-text
-               :placeholder "Sheet Name"
-               :model ""
-               :on-change (partial set-key! :name)
-               :change-on-blur? false
-               :status-icon? true
-               :status (when (:name @errors) :error)
-               :status-tooltip (when-let [e (:name @errors)]
-                                 e)
-               :validation-regex #"([a-zA-Z0-9_-]+)(.*)"]
-              ;
-              [rc/gap :size "1em"]
-              [rc/label :label "Sheet Template"]
-              [rc/single-dropdown
-               :choices templates
-               :model selected-template
-               :placeholder "Template"
-               :width "200px"
-               :on-change (partial reset! selected-template)]
-              ;
-              [rc/gap :size "1em"]
-              [rc/button
-               :class "btn-raised btn-primary"
-               :label "Create"
-               :on-click submit!]]]
-            (when (= :custom @selected-template)
-              [rc/v-box
+             [[rc/v-box
+               :gap ".5em"
                :children
-               [[rc/label :label "Custom Template"]
-                [rc/input-textarea
-                 :width "350px"
-                 :rows 20
-                 :model (str @template-data)
-                 :on-change println]]])]]]]
-        (when @creating?
-          [rc/modal-panel
-           :child
-           [rc/v-box
-            :width "300px"
-            :align :center
-            :children
-            [[rc/title
-              :label "Preparing your sheet..."
-              :level :level2]
-             [rc/gap :size "1em"]
-             [rc/throbber :size :large]]]])]])))
+               [[rc/label :label "Storage Provider"]
+                [rc/single-dropdown
+                 :choices (vals providers)
+                 :model default-provider
+                 :label-fn :name
+                 :placeholder "Storage Provider"
+                 :width "200px"
+                 :on-change (partial set-key! :provider)]
+                ;
+                (cond
+                  provider-loading? [rc/alert-box
+                                     :id :no-provider
+                                     :alert-type :warning
+                                     :body "Provider loading..."]
+                  (not provider-ready?)
+                  [rc/alert-box
+                   :id :provider-not-ready
+                   :alert-type :danger
+                   :body
+                   [:div
+                    [:div (:name provider-info) " is not configured."]
+                    [rc/button
+                     :class "btn-raised btn-secondary"
+                     :label (str "Configure " (:name provider-info))
+                     :on-click #(dispatch [:navigate!
+                                           (str "#/provider/"
+                                                (name provider-id))])]]]
+                  :else nil)
+                ;
+                [rc/gap :size "1em"]
+                [rc/label :label "Sheet Name"]
+                [rc/input-text
+                 :placeholder "Sheet Name"
+                 :model ""
+                 :on-change (partial set-key! :name)
+                 :change-on-blur? false
+                 :status-icon? true
+                 :status (when (:name @errors) :error)
+                 :status-tooltip (when-let [e (:name @errors)]
+                                   e)
+                 :validation-regex #"([a-zA-Z0-9_-]+)(.*)"]
+                ;
+                [rc/gap :size "1em"]
+                [rc/label :label "Sheet Template"]
+                [rc/single-dropdown
+                 :choices templates
+                 :model selected-template
+                 :placeholder "Template"
+                 :width "200px"
+                 :on-change (partial reset! selected-template)]
+                ;
+                [rc/gap :size "1em"]
+                [rc/button
+                 :class "btn-raised btn-primary"
+                 :label "Create"
+                 :disabled? (not provider-ready?)
+                 :on-click submit!]]]
+              (when (= :custom @selected-template)
+                [rc/v-box
+                 :children
+                 [[rc/label :label "Custom Template"]
+                  [rc/input-textarea
+                   :width "350px"
+                   :rows 20
+                   :model (str @template-data)
+                   :on-change println]]])]]]]
+          (when @creating?
+            [rc/modal-panel
+             :child
+             [rc/v-box
+              :width "300px"
+              :align :center
+              :children
+              [[rc/title
+                :label "Preparing your sheet..."
+                :level :level2]
+               [rc/gap :size "1em"]
+               [rc/throbber :size :large]]]])]]))))
