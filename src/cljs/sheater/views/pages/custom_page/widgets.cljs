@@ -31,6 +31,17 @@
       (str/replace #"[^a-z0-9-]" "")
       keyword))
 
+(defn ->int
+  "Attempt to safely coerce a value to an integer. If we
+   can't coerce it, a default value is returned instead."
+  ([v]
+   (->int v 0))
+  ([v default-value]
+   (let [parsed (js/parseInt v)]
+     (if (js/isNaN parsed)
+       default-value
+       parsed))))
+
 (defn ->state
   [id]
   (get @(subscribe [:active-state]) id))
@@ -133,7 +144,7 @@
                :on-change (fn [amount]
                             (write-state
                               id
-                              (assoc state (:id kind) (js/parseInt amount))))}]])
+                              (assoc state (:id kind) (->int amount))))}]])
           kinds))]]))
 
 (defn ^:export input
@@ -212,21 +223,19 @@
                 :placeholder "+/- number"
                 :on-change
                 (fn [v]
-                  (when-let [amount (js/parseInt v)]
+                  (when-let [amount (->int v)]
                     (reset! show-calc? false)
-                    (when-not (js/isNaN amount)
-                      ;; (println "CHANGE!" amount)
-                      (if id
-                        (write-state
-                          id (min
-                               (:max opts 99999999)
-                               (max
-                                 (:min opts 0)
-                                 (+ (js/parseInt (or (->state id)
-                                                     0))
-                                    amount))))
-                        (do (println "FORWARD-CHANGE!")
-                            ((:on-change opts) amount))))))}]]]])))
+                    ;; (println "CHANGE!" amount)
+                    (if id
+                      (write-state
+                        id (min
+                             (:max opts 99999999)
+                             (max
+                               (:min opts 0)
+                               (+ (->int (->state id))
+                                  amount))))
+                      (do (println "FORWARD-CHANGE!")
+                          ((:on-change opts) amount)))))}]]]])))
 
 (defn ^:export inventory
   "A container for items"
@@ -424,8 +433,8 @@
                                    (vec items)
                                    [(- i auto-value-count) amount-col]
                                    (fn [old-value]
-                                     (+ (js/parseInt old-value)
-                                        (js/parseInt delta)))))))}]]
+                                     (+ (->int old-value)
+                                        (->int delta)))))))}]]
 
                         ; regular col
                         :else
