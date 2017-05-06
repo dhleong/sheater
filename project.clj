@@ -1,7 +1,9 @@
 (defproject sheater "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.521"]
-                 [reagent "0.6.0"]
+                 [reagent "0.6.1" :exclusions [cljsjs/react-dom cljsjs/react-dom-server]]
+                 [cljsjs/react-dom "15.4.2-2"] ; manually declare for now to fix issue with number inputs
+                 [cljsjs/react-dom-server "15.4.2-2"]
                  [re-frame "0.9.2"]
                  [org.clojure/core.async "0.2.391"]
                  [re-com "2.0.0"]

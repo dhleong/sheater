@@ -3,20 +3,20 @@
   sheater.views.pages.custom-page.widgets
   (:require [clojure.string :as str]
             [reagent.core :as reagent]
-            [re-com.core :as rc]
-            [re-frame.core :refer [subscribe dispatch]]))
+            [re-frame.core :refer [subscribe dispatch]]
+            [re-com.core :as rc]))
 
 ;;
 ;; Constants
 ;;
 
 (def input-class-spec
-  {"number" {:regex #"^[0-9]*$"
+  {"number" {:regex #"^[+-]?[0-9]*$"
              :width "4em"
-             :type "number"}
-   "big-number" {:regex #"^[0-9]*$"
+             :type :number}
+   "big-number" {:regex #"^[+-]?[0-9]*$"
                  :width "7em"
-                 :type "number"}})
+                 :type :number}})
 
 ;;
 ;; Utils
@@ -61,6 +61,9 @@
 ;; Widgets
 ;;
 
+; declare internally-reused widgets
+(declare dynamic-table input)
+
 (defn ^:export checkbox
   [opts]
   {:pre [(or (:id opts)
@@ -91,7 +94,6 @@
         [:div.hidden-md.hidden-lg.col-separator]
         child])]))
 
-(declare dynamic-table)
 (defn ^:export consumables
   "An inventory containing consumable items, such as potions
    or ammunition"
@@ -111,9 +113,7 @@
   ; TODO fancy math
   (let [id (:id opts)
         kinds (:kinds opts)
-        state (->state id)
-        number-width (get-in input-class-spec ["big-number" :width])
-        number-regex (get-in input-class-spec ["big-number" :regex])]
+        state (->state id)]
     [:table
      [:tbody
       (into
@@ -127,35 +127,42 @@
         (map
           (fn [kind]
             [:td
-             [rc/input-text
-              :class "number"
-              :attr {:type "number"}
-              :style {:padding "0px"}
-              :width number-width
-              :model (str (or (get state (:id kind)) "0"))
-              :on-change (fn [amount]
-                           (write-state
-                             id
-                             (assoc state (:id kind) (js/parseInt amount))))
-              :validation-regex number-regex]])
+             [input
+              {:class "big-number"
+               :model (str (or (get state (:id kind)) "0"))
+               :on-change (fn [amount]
+                            (write-state
+                              id
+                              (assoc state (:id kind) (js/parseInt amount))))}]])
           kinds))]]))
 
 (defn ^:export input
   "Basic text input widget"
   [opts]
-  {:pre [(:id opts)]}
-  (let [id (:id opts)
-        class (:class opts)
+  {:pre [(or (:id opts)
+             (and (:model opts)
+                  (:on-change opts)))]}
+  (let [{:keys [id class attr placeholder]} opts
         regex (get-in input-class-spec [class :regex])
-        input-type (get-in input-class-spec [class :type])]
+        input-type (get-in input-class-spec [class :type])
+        value (str
+                (or (:model opts)
+                    (->state id)))
+        width (or (:width opts)
+                  (get-in input-class-spec [class :width]))
+        on-change (or (:on-change opts)
+                      (partial write-state id))]
     [rc/input-text
-     :attr {:type input-type}
+     :attr (if input-type
+             (merge {:type input-type}
+                    attr)
+             attr)
      :class class
+     :placeholder placeholder
      :style {:padding "0px"}
-     :width (or (:width opts)
-                (get-in input-class-spec [class :width]))
-     :model (or (->state id) "")
-     :on-change (partial write-state id)
+     :width width
+     :model value
+     :on-change on-change
      :validation-regex regex]))
 
 (defn ^:export input-calc
@@ -176,21 +183,19 @@
        :position :right-above
 
        :anchor
-       [rc/input-text
-        :class class
-        :width (or (:width opts)
-                   (get-in input-class-spec [class :width]))
-        :model (str
-                 (or (:model opts)
-                     (->state id)
-                     ""))
-        :on-change (or (:on-change opts)
-                       (partial write-state id))
-        :attr {:on-click
-               (fn [e]
-                 (.preventDefault e)
-                 (reset! show-calc? true))}
-        :validation-regex regex]
+       [input
+        {:class class
+         :width (:width opts)
+         :model (str
+                  (or (:model opts)
+                      (->state id)
+                      ""))
+         :on-change (or (:on-change opts)
+                        (partial write-state id))
+         :attr {:on-click
+                (fn [e]
+                  (.preventDefault e)
+                  (reset! show-calc? true))}}]
 
        :popover
        [rc/popover-content-wrapper
@@ -199,29 +204,29 @@
         :no-clip? true
 
         :body
-        [:div [rc/input-text
-               :attr {:type "number"
-                      :auto-focus true}
-               :model ""
-               :width "150px"
-               :placeholder "+/- number"
-               :on-change
-               (fn [v]
-                 (when-let [amount (js/parseInt v)]
-                   (reset! show-calc? false)
-                   (when-not (js/isNaN amount)
-                     ;; (println "CHANGE!" amount)
-                     (if id
-                       (write-state
-                         id (min
-                              (:max opts 99999999)
-                              (max
-                                (:min opts 0)
-                                (+ (js/parseInt (->state id))
-                                   amount))))
-                       (do (println "FORWARD-CHANGE!")
-                           ((:on-change opts) amount))))))
-               :validation-regex #"[-+]?[0-9]*"]]]])))
+        [:div [input
+               {:class "number"
+                :attr {:auto-focus true}
+                :model ""
+                :width "150px"
+                :placeholder "+/- number"
+                :on-change
+                (fn [v]
+                  (when-let [amount (js/parseInt v)]
+                    (reset! show-calc? false)
+                    (when-not (js/isNaN amount)
+                      ;; (println "CHANGE!" amount)
+                      (if id
+                        (write-state
+                          id (min
+                               (:max opts 99999999)
+                               (max
+                                 (:min opts 0)
+                                 (+ (js/parseInt (or (->state id)
+                                                     0))
+                                    amount))))
+                        (do (println "FORWARD-CHANGE!")
+                            ((:on-change opts) amount))))))}]]]])))
 
 (defn ^:export inventory
   "A container for items"
