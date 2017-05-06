@@ -3,7 +3,8 @@
   sheater.subs
   (:require [clojure.set :refer [union]]
             [clojure.string :as str]
-            [re-frame.core :refer [reg-sub subscribe]]))
+            [re-frame.core :refer [reg-sub subscribe]]
+            [sheater.provider :refer [providers]]))
 
 (reg-sub :sheets-map :sheets)
 
@@ -15,11 +16,12 @@
 (reg-sub
   :any-loading?
   (fn [db]
-    (println (count (:loading-providers db)))
-    (-> db
-        :loading-providers
-        count
-        (> 0))))
+    (or (-> db
+            :loading-providers
+            count
+            (> 0))
+        (< (count (:providers db))
+           (count providers)))))
 
 (reg-sub
   :provider
