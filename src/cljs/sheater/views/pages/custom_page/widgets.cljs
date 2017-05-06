@@ -270,6 +270,17 @@
      :on-change (fn [new-selection]
                   (dispatch [:edit-sheet-state id new-selection]))]))
 
+(defn table
+  [& children]
+  (let [tbody (first children)
+        tbody (if (= :tbody (first tbody))
+               tbody
+               (into [:tbody] children))
+        row-count (dec (count tbody))]
+    (if (<= row-count 2)
+      [:table.single-row tbody]
+      [:table tbody])))
+
 ;; -- Dynamic Table ------------------------------------------------------------
 
 (defn dynamic-table-prompt

@@ -31,7 +31,8 @@
         [:partial-number `widg/partial-number]
         [:picker `widg/picker]
         [:selectable-list `widg/selectable-list]
-        [:selectable-set `widg/selectable-set]]
+        [:selectable-set `widg/selectable-set]
+        [:table `widg/table]]
 
        ; dynamically generate the mapping once
        ; to avoid a lot of yuck. The resulting map
@@ -255,9 +256,8 @@
       (let [result  (if-let [factory (get widget-types el)]
                       (if symbols?
                         `[~(:symbol factory) ~arg ~children]
-                        (vec
-                          (concat [(:fn factory) arg]
-                                  children)))
+                        (into [(:fn factory) arg]
+                              children))
                       [:div "Unknown element type" el])]
         ;; (println "Translated " element " - > " result)
         result))))
@@ -280,7 +280,11 @@
                  (rest element))
          :cols [widg/cols
                 (map (partial translate page state)
-                     (rest element)) ]
+                     (rest element))]
+         :table (flatten-vec
+                  [widg/table
+                   (map (partial translate page state)
+                        (rest element))])
          (if-let [auto-input (translate-auto-input page state opts element)]
            ; it was eg: :input#name
            auto-input
