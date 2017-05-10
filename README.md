@@ -1,59 +1,23 @@
 # sheater
 
-A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.
+*Character sheets so good it'll feel like cheating*
 
-## Development Mode
+## What?
 
-### Start Cider from Emacs:
+Sheater is a free web app that supports customizable, dynamic
+character sheets for tabletop games like Dungeons and Dragons
+or FantasyAGE. Your sheets are stored in the cloud (on your
+Google Drive) so you can load them up on any device with a screen
+and access to the internet.
 
-Put this in your Emacs config file:
+## How?
 
-```
-(setq cider-cljs-lein-repl "(do (use 'figwheel-sidecar.repl-api) (start-figwheel!) (cljs-repl))")
-```
+Sheater uses a [hiccup][1]-like language to declare templates.
+Each template has a "static" section, in which you can include
+raw data such as attributes or spell lists that can be referenced
+in the rest of the template; one or more page definitions; and,
+of course, a user data section. For more information, and to learn
+about how to make your own template, see the
+[templates documentation][2].
 
-Navigate to a clojurescript file and start a figwheel REPL with `cider-jack-in-clojurescript` or (`C-c M-J`)
-
-### Compile css:
-
-Compile css file once.
-
-```
-lein less once
-```
-
-Automatically recompile css file on change.
-
-```
-lein less auto
-```
-
-### Run application:
-
-```
-lein clean
-lein figwheel dev
-```
-
-Figwheel will automatically push cljs changes to the browser.
-
-Wait a bit, then browse to [http://localhost:3449](http://localhost:3449).
-
-### Run tests:
-
-```
-lein clean
-lein doo phantom test once
-```
-
-The above command assumes that you have [phantomjs](https://www.npmjs.com/package/phantomjs) installed. However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
-
-## Production Build
-
-
-To compile clojurescript to javascript:
-
-```
-lein clean
-lein cljsbuild once min
-```
+[1]: https://github.com/weavejester/hiccup

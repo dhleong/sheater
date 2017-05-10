@@ -304,9 +304,7 @@
          "Focuses"]
         [:th
          "Rating"]]
-       (for
-         [a
-          :$abilities]
+       (for [a :$abilities]
          [:tr
           [:td
            [:checkbox
