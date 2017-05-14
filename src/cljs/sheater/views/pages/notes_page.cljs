@@ -8,6 +8,10 @@
 
 (def tag-regex #"(#([a-zA-Z0-9_-]+))")
 
+(defn ->query
+  [filter-atom]
+  (reagent/cursor filter-atom [:query]))
+
 (defn extract-tags
   [text]
   (map
@@ -15,14 +19,14 @@
     (re-seq tag-regex text)))
 
 (defn tag-cloud
-  ([filter-atom tags]
+  ([filter-text-atom tags]
    [:div.tag-cloud
     (for [t tags]
       ^{:key t}
       [:div.tag-item
        [rc/hyperlink
         :label (str "#" t)
-        :on-click #(reset! filter-atom t)]])])
+        :on-click #(reset! filter-text-atom t)]])])
   ([tags]
    [:div.tag-cloud
     (for [t tags]
@@ -76,15 +80,17 @@
 
 (defn active-tag-cloud
   [filter-atom]
-  (let [tags @(subscribe [:active-note-tags])]
+  (let [tags @(subscribe [:active-note-tags])
+        filter-text (->query filter-atom)]
     [rc/box
      :child
-     [tag-cloud filter-atom tags]]))
+     [tag-cloud filter-text tags]]))
 
 (defn note-card
   [filter-atom editing-note note]
-  (let [mouse-over? (reagent/atom false)]
-    (fn [filter-atom editing-note note]
+  (let [mouse-over? (reagent/atom false)
+        filter-text (->query filter-atom)]
+    (fn [_ editing-note note]
       [:div.card
        {:on-mouse-over #(reset! mouse-over? true)
         :on-mouse-out #(reset! mouse-over? false)}
@@ -92,9 +98,11 @@
         :class "card-contents"
         :children
         [(:body note)
-         [tag-cloud filter-atom (:tags note)]]]
+         [tag-cloud filter-text (:tags note)]]]
        [rc/h-box
-        :class "card-buttons"
+        :class (str "card-buttons"
+                    (when (empty? (:tags note))
+                      " single"))
         :gap "1em"
         :children
         [[rc/row-button
@@ -117,9 +125,35 @@
        ^{:key (:created n)}
        [note-card filter-atom editing-note n])]))
 
+(defn sort-options
+  [sort-setting]
+  (let [current-sort @sort-setting]
+    [rc/h-box
+     :align :center
+     :gap ".5em"
+     :height "100%"
+     :justify :end
+     :children
+     [[rc/button
+       :label
+       [:span
+        "Sort "
+        [:i.zmdi
+         {:class (case current-sort
+                   :created-asc "zmdi-sort-amount-asc"
+                   :created-desc "zmdi-sort-amount-desc")}]]
+       :on-click (fn []
+                   (reset! sort-setting
+                           (case current-sort
+                             :created-asc :created-desc
+                             :created-desc :created-asc)))]]]))
+
 (defn render
   [page state]
-  (let [current-filter (reagent/atom "")
+  (let [current-filter (reagent/atom {:query ""
+                                      :sorting :created-desc})
+        filter-text (->query current-filter)
+        filter-sort (reagent/cursor current-filter [:sorting])
         editing-note (reagent/atom nil)]
     (fn []
       [rc/v-box
@@ -127,27 +161,30 @@
        :children
        [(when-let [editing @editing-note]
           [edit-note-dialog editing-note editing])
-        [rc/h-box
-         :style {:width "100%"}
-         :class "search-bar"
-         :gap "1em"
-         :children
-         [[rc/button
-           :class "btn-raised btn-primary"
-           :label "Add New Note"
-           :on-click
-           (fn []
-             (reset! editing-note :new))]
-          [widg/clearable-input-text
-           :attr {:id "notes-search"}
-           :class "search"
-           :width "auto"
-           :model current-filter
-           :placeholder "Search"
-           :change-on-blur? false
-           :on-change
-           (fn [filter-text]
-             (reset! current-filter filter-text))]]]
+        [:div.row.search-row
+         [:div.col-md-5.col-sm-12
+          [rc/h-box
+           :style {:width "100%"}
+           :class "search-bar"
+           :gap "1em"
+           :children
+           [[rc/button
+             :class "btn-raised btn-primary"
+             :label "Add New Note"
+             :on-click
+             (fn []
+               (reset! editing-note :new))]
+            [widg/clearable-input-text
+             :attr {:id "notes-search"}
+             :class "search"
+             :width "auto"
+             :model filter-text
+             :placeholder "Search"
+             :change-on-blur? false
+             :on-change
+             (partial reset! filter-text)]]]]
+         [:div.col-md-3.col-sm-12.filters
+          [sort-options filter-sort]]]
         [:div.row
          [:div.col-md-4.col-md-push-8
           [active-tag-cloud current-filter]]

@@ -128,11 +128,23 @@
          (map :tags)
          (apply union))))
 
+(def sorting-keys
+  {:created-asc :created
+   :created-desc :created})
+
+(def sorting-comparators
+  (let [ascending compare
+        descending #(compare %2 %1)]
+    {:created-asc ascending
+     :created-desc descending}))
+
 (reg-sub
   :search-notes
   :<- [:active-notes]
-  (fn [notes [_ query]]
-    (let [query-key (str/lower-case query)]
+  (fn [notes [_ {:keys [query sorting] :as filt}]]
+    (let [query-key (str/lower-case query)
+          sort-key (get sorting-keys sorting)
+          sort-comp (get sorting-comparators sorting)]
       (->> notes
            (filter
              ; TODO be better?
@@ -143,4 +155,6 @@
                ; TODO case-insensitive includes?
                (str/includes? (str/lower-case
                                 (:body note))
-                              query-key)))))))
+                              query-key)))
+           ; sort as requested
+           (sort-by sort-key sort-comp)))))
