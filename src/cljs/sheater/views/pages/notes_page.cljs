@@ -27,7 +27,7 @@
    [:div.tag-cloud
     (for [t tags]
       ^{:key t}
-      [:div.tag (str "#" t)])]))
+      [:div.tag-item (str "#" t)])]))
 
 (defn edit-note-dialog
   [showing? note-created]
