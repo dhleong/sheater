@@ -18,5 +18,6 @@
     "Fetch the contents of a sheet if we don't already have it.
     on-complete should be called with the contents as edn")
   (save-sheet
-    [this info]
-    "Save changes to a sheet"))
+    [this info on-complete]
+    "Save changes to a sheet. on-complete is called with an Error
+     on failure, or a falsey value on success"))

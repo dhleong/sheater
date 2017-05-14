@@ -178,7 +178,7 @@
                   (do
                     ;; TODO notify?
                     (js/console.warn "Auth refresh failed:" refresh-resp)
-                    (on-complete resp))
+                    (on-complete nil))
                   (do
                     (js/console.log "Auth refreshed! Retrying upload...")
                     (upload-data
@@ -255,7 +255,7 @@
                  ;; TODO
                  (println "ERROR listing files" e)))))
   ;
-  (save-sheet [this info]
+  (save-sheet [this info cb]
     (println "Save " (:gapi-id info))
     (println (str (:data info)))
     (upload-data-with-retry
@@ -265,5 +265,7 @@
       (str (:data info))
       (fn [response]
         (if response
-          (println "SAVED!" response)
-          (js/console.error "Failed to save sheet"))))))
+          (do (println "SAVED!" response)
+              (cb nil))
+          (do (js/console.error "Failed to save sheet")
+              (cb (js/Error. "Failed to save sheet"))))))))

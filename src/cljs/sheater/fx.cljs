@@ -42,6 +42,13 @@
 ;; Persist changes to a sheet
 ;;
 
+(defn confirm-close-window
+  [e]
+  (let [confirm-message "You have unsaved changes. Are you sure you want to exit?"]
+    (when e
+      (set! (.-returnValue e) confirm-message))
+    confirm-message))
+
 (reg-fx
   :save-sheet!
   (fn [sheet]
@@ -49,7 +56,18 @@
       (-> providers
           provider-id
           :inst
-          (save-sheet sheet)))))
+          (save-sheet
+            sheet
+            (fn [err]
+              (println "save-sheet result")
+              (when err
+                ; TODO notify? retry?
+                (js/console.warn err))
+              (when-not err
+                (js/window.removeEventListener
+                  "beforeunload"
+                  confirm-close-window)
+                (println "Saved!"))))))))
 
 (defonce save-sheet-timers (atom {}))
 (def throttled-save-timeout 7500)
@@ -58,8 +76,13 @@
   :save-sheet-throttled!
   (fn [sheet-id]
     (when sheet-id
-      (when-let [timer (get @save-sheet-timers sheet-id)]
-        (js/clearTimeout timer))
+      (if-let [timer (get @save-sheet-timers sheet-id)]
+        ; existing timer; clear it
+        (js/clearTimeout timer)
+        ; no existing, so this is the first; confirm window closing
+        (js/window.addEventListener
+          "beforeunload"
+          confirm-close-window))
       (js/console.log "Queue throttled-save of" (str sheet-id))
       (swap! save-sheet-timers
              assoc
