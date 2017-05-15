@@ -59,7 +59,6 @@
           (save-sheet
             sheet
             (fn [err]
-              (println "save-sheet result")
               (when err
                 ; TODO notify? retry?
                 (js/console.warn err))
