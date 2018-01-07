@@ -142,43 +142,45 @@
 ;;
 ;; Notes
 
-(reg-event-db
+(reg-event-fx
   :delete-active-note!
   [trim-v]
-  (fn [db [note]]
+  (fn [{:keys [db]} [note]]
     (let [active-panel (:active-panel db)
           [active-sheet active-page] (second active-panel)
           sheets (-> db :sheets)
           note-created (:created note)]
-      (update-in db [:sheets active-sheet
-                     :data :state :sheater/notes
-                     active-page]
-                 (comp
-                   vec
-                   (partial
-                     remove
-                     (fn [candidate]
-                       (= note-created (:created candidate)))))))))
+      {:db (update-in db [:sheets active-sheet
+                          :data :state :sheater/notes
+                          active-page]
+                      (comp
+                        vec
+                        (partial
+                          remove
+                          (fn [candidate]
+                            (= note-created (:created candidate))))))
+       :save-sheet-throttled! active-sheet})))
 
-(reg-event-db
+(reg-event-fx
   :update-active-note!
   [trim-v]
-  (fn [db [note]]
+  (fn [{:keys [db]} [note]]
     (let [active-panel (:active-panel db)
           [active-sheet active-page] (second active-panel)
           sheets (-> db :sheets)]
-      (update-in db [:sheets active-sheet
-                     :data :state :sheater/notes
-                     active-page]
-                 (fn [notes]
-                   (let [created (:created note)
-                         [idx] (->> notes
-                                      (map-indexed list)
-                                      (filter
-                                        (fn [[i n]]
-                                          (= created (:created n))))
-                                      first)]
-                     (cond
-                       (not notes) [note]
-                       (not (nil? idx)) (assoc (vec notes) idx note)
-                       :else (concat notes [note]))))))))
+      {:db (update-in db [:sheets active-sheet
+                          :data :state :sheater/notes
+                          active-page]
+                      (fn [notes]
+                        (let [created (:created note)
+                              [idx] (->> notes
+                                         (map-indexed list)
+                                         (filter
+                                           (fn [[i n]]
+                                             (= created (:created n))))
+                                         first)]
+                          (cond
+                            (not notes) [note]
+                            (not (nil? idx)) (assoc (vec notes) idx note)
+                            :else (concat notes [note])))))
+       :save-sheet-throttled! active-sheet})))
