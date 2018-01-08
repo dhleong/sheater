@@ -76,7 +76,10 @@
      :desc "Discerning the feelings and emotions of others."}]
    :str
    [{:label "Intimidation"
-     :desc "Overawing others with physical presence and threats."}]}
+     :desc "Overawing others with physical presence and threats."}]
+   :wil
+   [{:label "Courage"
+     :desc "Overcoming fear in the face of adversity."}]}
   :talents
   [{:label "Alchemy (Novice)"
     :desc "You know the basics of alchemy. You can make blast vials and thunder vials."}
@@ -114,6 +117,12 @@
     :desc "You learn the spell Firestorm. You can also choose one spell stunt you can perform for -1 SP when casting Fire Arcana spells."}
    {:label "Lore (Novice)"
     :desc "You have studied hard. When you make a successful Intelligence test with a lore focus, the GM should give you an extra piece of information on the topic. A lore focus is any Intelligence focus with the word \"lore\" in it, such as Cultural Lore and Historical Lore. The GM determines the additional information and it may or may not be pertinent to the main question at hand."}
+   {:label "Thievery (Novice)"
+    :desc "You don’t let locks stand in your way. If you fail a Dexterity (Lock Picking) test, you can re-roll it, but you must keep the results of the second roll."}
+   {:label "Thievery (Journeyman)"
+    :desc "You are familiar with many types of traps. If you fail a Dexterity (Traps) test, you can re-roll it, but you must keep the results of the second roll."}
+   {:label "Thievery (Master)"
+    :desc "You know how to find what’s hidden. If you fail a Perception (Searching) test, you can re-roll it, but you must keep the results of the second roll."}
    {:label "Two-Hander Style (Novice)"
     :desc "The length of your weapon and the power of your attacks forces foes to yield ground. When you hit with a Melee Attack with a two-handed weapon, you can move the target 2 yards in any direction."}
    {:label "Two-Hander Style (Journeyman)"
